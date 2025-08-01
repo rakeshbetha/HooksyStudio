@@ -3,20 +3,8 @@
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import styles from './EnhancedOutputDisplay.module.css'
-import { GeneratedContent } from '../page'
+import { GeneratedContent, SavedContent } from '../types'
 import { calculateHookScore } from '../utils/hookScore'
-
-interface SavedContent {
-  id: string
-  topic: string
-  tone: string
-  hook: string
-  title: string
-  hashtags: string[]
-  cta: string
-  timestamp: number
-  hookScore?: 'Low' | 'Medium' | 'Viral'
-}
 
 interface EnhancedOutputDisplayProps {
   content: GeneratedContent
@@ -26,6 +14,10 @@ interface EnhancedOutputDisplayProps {
 
 export default function EnhancedOutputDisplay({ content, topic, tone }: EnhancedOutputDisplayProps) {
   const [showSocialPreview, setShowSocialPreview] = useState(false)
+  
+  // Default brand settings - can be customized in the future
+  const brandName = 'YourBrand'
+  const brandInitials = 'Y'
 
   const copyToClipboard = async (text: string, label: string) => {
     try {
@@ -91,7 +83,7 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
     }
   }
 
-  const hookScore = calculateHookScore(content.hooks[0])
+  const hookScoreResult = calculateHookScore(content.hooks[0])
 
   return (
     <div className={styles.container}>
@@ -101,127 +93,120 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         </h3>
         
         {/* Hook Section */}
-        <div className={styles.section}>
-          <div className={styles.sectionHeader}>
-            <h4 className={styles.sectionLabel}>Hook</h4>
-            <div className={styles.hookScore}>
-              <span 
-                className={`${styles.scoreBadge} ${styles[hookScore.score.toLowerCase()]}`} 
-                title={hookScore.reason}
-              >
-                {hookScore.emoji} {hookScore.score}
+        <div className={styles.contentCard}>
+          <div className={styles.cardHeader}>
+            <h4 className={styles.cardTitle}>
+              🎯 Viral Hook
+              <span className={`${styles.scoreBadge} ${styles[hookScoreResult.score.toLowerCase()]}`}>
+                {hookScoreResult.emoji} {hookScoreResult.score}
               </span>
-            </div>
+            </h4>
+            <button
+              onClick={() => copyToClipboard(content.hooks[0], 'Hook')}
+              className={styles.copyButton}
+              title="Copy hook"
+            >
+              📋
+            </button>
           </div>
-          <div className={styles.contentCard}>
-            <p className={styles.hookText}>{content.hooks[0]}</p>
-            <div className={styles.actionButtons}>
-              <button
-                onClick={() => copyToClipboard(content.hooks[0], 'Hook')}
-                className={styles.copyButton}
-                title="Copy to clipboard"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
+          <p className={styles.contentText}>{content.hooks[0]}</p>
         </div>
 
         {/* Title Section */}
-        <div className={styles.section}>
-          <h4 className={styles.sectionLabel}>Suggested Title</h4>
-          <div className={styles.contentCard}>
-            <p className={styles.titleText}>{content.titles[0]}</p>
-            <div className={styles.actionButtons}>
-              <button
-                onClick={() => copyToClipboard(content.titles[0], 'Title')}
-                className={styles.copyButton}
-                title="Copy to clipboard"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
+        <div className={styles.contentCard}>
+          <div className={styles.cardHeader}>
+            <h4 className={styles.cardTitle}>📝 Compelling Title</h4>
+            <button
+              onClick={() => copyToClipboard(content.titles[0], 'Title')}
+              className={styles.copyButton}
+              title="Copy title"
+            >
+              📋
+            </button>
           </div>
+          <p className={styles.contentText}>{content.titles[0]}</p>
         </div>
 
         {/* Hashtags Section */}
-        <div className={styles.section}>
-          <h4 className={styles.sectionLabel}>Hashtags</h4>
-          <div className={styles.contentCard}>
-            <p className={styles.hashtagText}>{content.hashtags.slice(0, 5).join(' ')}</p>
-            <div className={styles.actionButtons}>
-              <button
-                onClick={() => copyToClipboard(content.hashtags.slice(0, 5).join(' '), 'Hashtags')}
-                className={styles.copyButton}
-                title="Copy to clipboard"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
+        <div className={styles.contentCard}>
+          <div className={styles.cardHeader}>
+            <h4 className={styles.cardTitle}>🏷️ Trending Hashtags</h4>
+            <button
+              onClick={() => copyToClipboard(content.hashtags.join(' '), 'Hashtags')}
+              className={styles.copyButton}
+              title="Copy hashtags"
+            >
+              📋
+            </button>
+          </div>
+          <div className={styles.hashtagContainer}>
+            {content.hashtags.map((hashtag, index) => (
+              <span key={index} className={styles.hashtag}>
+                {hashtag}
+              </span>
+            ))}
           </div>
         </div>
 
         {/* CTA Section */}
-        <div className={styles.section}>
-          <h4 className={styles.sectionLabel}>CTA</h4>
-          <div className={styles.contentCard}>
-            <p className={styles.ctaText}>{content.ctas[0]}</p>
-            <div className={styles.actionButtons}>
-              <button
-                onClick={() => copyToClipboard(content.ctas[0], 'CTA')}
-                className={styles.copyButton}
-                title="Copy to clipboard"
-              >
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                  <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-                </svg>
-              </button>
-            </div>
+        <div className={styles.contentCard}>
+          <div className={styles.cardHeader}>
+            <h4 className={styles.cardTitle}>🎪 Call-to-Action</h4>
+            <button
+              onClick={() => copyToClipboard(content.ctas[0], 'CTA')}
+              className={styles.copyButton}
+              title="Copy CTA"
+            >
+              📋
+            </button>
           </div>
+          <p className={styles.contentText}>{content.ctas[0]}</p>
         </div>
 
-        {/* Main Action Buttons - Side by Side */}
+        {/* Action Buttons */}
         <div className={styles.actionButtons}>
-          <button 
-            onClick={saveToCollection} 
+          <button
+            onClick={saveToCollection}
             className={styles.saveButton}
           >
             💾 Save to Collection
           </button>
-          <button 
-            onClick={() => setShowSocialPreview(!showSocialPreview)} 
+          
+          <button
+            onClick={() => setShowSocialPreview(!showSocialPreview)}
             className={styles.previewButton}
           >
-            📱 Social Preview
+            {showSocialPreview ? '👁️ Hide Preview' : '👁️ Show Social Preview'}
           </button>
         </div>
 
-        {/* Social Preview */}
+        {/* Social Media Preview */}
         {showSocialPreview && (
           <div className={styles.socialPreview}>
-            <h4 className={styles.sectionLabel}>Social Caption Preview</h4>
+            <h4 className={styles.previewTitle}>
+              📱 How Your Content Will Look
+              <span className={styles.previewNote}> (Preview for your brand)</span>
+            </h4>
             <div className={styles.previewCard}>
-              <div className={styles.previewContent}>
-                <p className={styles.previewHook}>{content.hooks[0]}</p>
-                <p className={styles.previewTitle}>{content.titles[0]}</p>
-                <p className={styles.previewHashtags}>{content.hashtags.slice(0, 5).join(' ')}</p>
+              <div className={styles.previewHeader}>
+                <div className={styles.previewAvatar}>{brandInitials}</div>
+                <div className={styles.previewInfo}>
+                  <div className={styles.previewName}>{brandName}</div>
+                  <div className={styles.previewTime}>Just now</div>
+                </div>
               </div>
-              <button
-                onClick={() => copyToClipboard(`${content.hooks[0]}\n\n${content.titles[0]}\n\n${content.hashtags.slice(0, 5).join(' ')}`, 'Social caption')}
-                className={styles.copyPreviewButton}
-              >
-                Copy Caption
-              </button>
+              <div className={styles.previewContent}>
+                <p className={styles.previewText}>{content.hooks[0]}</p>
+                <p className={styles.previewText}>{content.titles[0]}</p>
+                <div className={styles.previewHashtags}>
+                  {content.hashtags.slice(0, 3).map((hashtag, index) => (
+                    <span key={index} className={styles.previewHashtag}>
+                      {hashtag}
+                    </span>
+                  ))}
+                </div>
+                <p className={styles.previewCTA}>{content.ctas[0]}</p>
+              </div>
             </div>
           </div>
         )}

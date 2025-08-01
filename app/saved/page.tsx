@@ -1,36 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { toast } from 'react-toastify'
 import { motion, AnimatePresence } from 'framer-motion'
+import { toast } from 'react-toastify'
 import styles from './Saved.module.css'
-
-interface SavedContent {
-  id: string
-  topic: string
-  tone: string
-  hooks: string[]
-  titles: string[]
-  hashtags: string[]
-  ctas: string[]
-  timestamp: number
-  isPinned?: boolean
-  customTags?: string[]
-  notes?: string
-}
-
-// Legacy interface for backward compatibility
-interface LegacySavedContent {
-  id: string
-  topic: string
-  tone: string
-  hook: string
-  title: string
-  hashtags: string[]
-  cta: string
-  timestamp: number
-  hookScore?: 'Low' | 'Medium' | 'Viral'
-}
+import { SavedContent } from '../types'
 
 interface EditFormData {
   topic: string
@@ -79,10 +53,10 @@ export default function SavedPage() {
               id: item.id,
               topic: item.topic,
               tone: item.tone,
-              hooks: [item.hook],
-              titles: [item.title],
+              hook: item.hook,
+              title: item.title,
               hashtags: item.hashtags || [],
-              ctas: [item.cta],
+              cta: item.cta,
               timestamp: item.timestamp,
               isPinned: item.isPinned || false,
               customTags: item.customTags || [],
@@ -161,12 +135,12 @@ export default function SavedPage() {
     setEditFormData({
       topic: item.topic,
       tone: item.tone,
-      hook: getFirstHook(item),
-      title: getFirstTitle(item),
-      hashtags: item.hashtags.join(' '),
-      cta: getFirstCta(item),
+      hook: item.hook,
+      title: item.title,
+      hashtags: Array.isArray(item.hashtags) ? item.hashtags.join(', ') : item.hashtags,
+      cta: item.cta,
       notes: item.notes || '',
-      customTags: item.customTags?.join(', ') || ''
+      customTags: Array.isArray(item.customTags) ? item.customTags.join(', ') : ''
     })
     setIsEditing(item.id)
     setShowEditModal(true)
@@ -208,10 +182,10 @@ export default function SavedPage() {
             ...item,
             topic: editFormData.topic.trim(),
             tone: editFormData.tone,
-            hooks: [editFormData.hook.trim()],
-            titles: [editFormData.title.trim()],
+            hook: editFormData.hook.trim(),
+            title: editFormData.title.trim(),
             hashtags: editFormData.hashtags.trim() ? editFormData.hashtags.trim().split(' ').filter(tag => tag.startsWith('#')) : [],
-            ctas: [editFormData.cta.trim()],
+            cta: editFormData.cta.trim(),
             notes: editFormData.notes.trim(),
             customTags: editFormData.customTags.trim() ? editFormData.customTags.trim().split(',').map(tag => tag.trim()) : [],
             timestamp: Date.now() // Update timestamp
@@ -260,10 +234,10 @@ export default function SavedPage() {
     const printContent = savedContent.map(item => `
       Topic: ${item.topic}
       Tone: ${item.tone}
-      Hook: ${getFirstHook(item)}
-      Title: ${getFirstTitle(item)}
+      Hook: ${item.hook}
+      Title: ${item.title}
       Hashtags: ${item.hashtags.join(' ')}
-      CTA: ${getFirstCta(item)}
+      CTA: ${item.cta}
       Notes: ${item.notes || 'No notes'}
       Tags: ${item.customTags?.join(', ') || 'No tags'}
       Date: ${formatDate(item.timestamp)}
@@ -288,10 +262,10 @@ export default function SavedPage() {
 # ${item.topic}
 
 **Tone:** ${item.tone}  
-**Hook:** ${getFirstHook(item)}  
-**Title:** ${getFirstTitle(item)}  
+**Hook:** ${item.hook}  
+**Title:** ${item.title}  
 **Hashtags:** ${item.hashtags.join(' ')}  
-**CTA:** ${getFirstCta(item)}  
+**CTA:** ${item.cta}  
 **Notes:** ${item.notes || 'No notes'}  
 **Tags:** ${item.customTags?.join(', ') || 'No tags'}  
 **Date:** ${formatDate(item.timestamp)}  
@@ -323,10 +297,10 @@ export default function SavedPage() {
       ...savedContent.map(item => [
         item.topic,
         item.tone,
-        getFirstHook(item),
-        getFirstTitle(item),
+        item.hook,
+        item.title,
         item.hashtags.join(' '),
-        getFirstCta(item),
+        item.cta,
         item.notes || '',
         item.customTags?.join(', ') || '',
         formatDate(item.timestamp),
@@ -386,21 +360,6 @@ export default function SavedPage() {
     return toneColors[tone] || 'var(--color-primary)'
   }
 
-  // Helper function to safely get the first hook
-  const getFirstHook = (item: SavedContent) => {
-    return item.hooks && item.hooks.length > 0 ? item.hooks[0] : 'No hook available'
-  }
-
-  // Helper function to safely get the first title
-  const getFirstTitle = (item: SavedContent) => {
-    return item.titles && item.titles.length > 0 ? item.titles[0] : 'No title available'
-  }
-
-  // Helper function to safely get the first CTA
-  const getFirstCta = (item: SavedContent) => {
-    return item.ctas && item.ctas.length > 0 ? item.ctas[0] : 'No CTA available'
-  }
-
   // Get all unique tags for filtering
   const getAllTags = () => {
     const allTags = new Set<string>()
@@ -413,12 +372,14 @@ export default function SavedPage() {
   // Filter, search, and sort functionality
   const filteredAndSortedContent = savedContent
     .filter(item => {
-      const hookText = getFirstHook(item)
+      const hookText = item.hook
       const matchesSearch = item.topic.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           hookText.toLowerCase().includes(searchTerm.toLowerCase())
+      
       const matchesTone = filterTone === 'all' || item.tone === filterTone
       const matchesTags = filterTags === 'all' || item.customTags?.includes(filterTags)
       const matchesPinned = !showPinnedOnly || item.isPinned
+      
       return matchesSearch && matchesTone && matchesTags && matchesPinned
     })
     .sort((a, b) => {
@@ -645,9 +606,9 @@ export default function SavedPage() {
                     >
                       <div className={styles.detailSection}>
                         <h4 className={styles.detailTitle}>🎣 Hook</h4>
-                        <p className={styles.detailText}>{getFirstHook(item)}</p>
+                        <p className={styles.detailText}>{item.hook}</p>
                         <button
-                          onClick={() => copyToClipboard(getFirstHook(item), 'Hook')}
+                          onClick={() => copyToClipboard(item.hook, 'Hook')}
                           className={styles.copyButton}
                         >
                           📋 Copy Hook
@@ -656,9 +617,9 @@ export default function SavedPage() {
                       
                       <div className={styles.detailSection}>
                         <h4 className={styles.detailTitle}>📝 Title</h4>
-                        <p className={styles.detailText}>{getFirstTitle(item)}</p>
+                        <p className={styles.detailText}>{item.title}</p>
                         <button
-                          onClick={() => copyToClipboard(getFirstTitle(item), 'Title')}
+                          onClick={() => copyToClipboard(item.title, 'Title')}
                           className={styles.copyButton}
                         >
                           📋 Copy Title
@@ -678,9 +639,9 @@ export default function SavedPage() {
                       
                       <div className={styles.detailSection}>
                         <h4 className={styles.detailTitle}>🎯 CTA</h4>
-                        <p className={styles.detailText}>{getFirstCta(item)}</p>
+                        <p className={styles.detailText}>{item.cta}</p>
                         <button
-                          onClick={() => copyToClipboard(getFirstCta(item), 'CTA')}
+                          onClick={() => copyToClipboard(item.cta, 'CTA')}
                           className={styles.copyButton}
                         >
                           📋 Copy CTA

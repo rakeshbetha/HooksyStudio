@@ -59,13 +59,23 @@ export default function HookOfTheDay() {
     }
   }
 
+  const scrollToForm = () => {
+    const heroSection = document.getElementById('hero')
+    if (heroSection) {
+      heroSection.scrollIntoView({ 
+        behavior: 'smooth',
+        block: 'start'
+      })
+    }
+  }
+
   if (!currentHook) return null
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h3 className={styles.title}>
-          ✨ Hook of the Day
+          🔥 Hooksy's Hook of the Day
         </h3>
         <p className={styles.subtitle}>
           Get inspired by today's viral hook
@@ -76,13 +86,22 @@ export default function HookOfTheDay() {
         <p className={styles.hookText}>
           "{currentHook}"
         </p>
-        <button
-          onClick={copyToClipboard}
-          className={`${styles.copyButton} ${isCopied ? styles.copied : ''}`}
-          disabled={isCopied}
-        >
-          {isCopied ? '✓ Copied!' : '📋 Copy Hook'}
-        </button>
+        <div className={styles.actionButtons}>
+          <button
+            onClick={copyToClipboard}
+            className={`${styles.copyButton} ${isCopied ? styles.copied : ''}`}
+            disabled={isCopied}
+          >
+            {isCopied ? '✓ Copied!' : '📋 Copy Hook'}
+          </button>
+          
+          <button
+            onClick={scrollToForm}
+            className={styles.ctaButton}
+          >
+            Want more like this? → Try similar hook
+          </button>
+        </div>
       </div>
     </div>
   )

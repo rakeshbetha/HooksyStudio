@@ -5,17 +5,11 @@ import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import styles from './page.module.css'
 import Hero from './components/Hero'
-import HookOfTheDay from './components/HookOfTheDay'
+import DemoCarousel from './components/DemoCarousel'
 import EnhancedOutputDisplay from './components/EnhancedOutputDisplay'
 import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
-
-interface GeneratedContent {
-  hooks: string[]
-  titles: string[]
-  hashtags: string[]
-  ctas: string[]
-}
+import { GeneratedContent } from './types'
 
 export default function Home() {
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null)
@@ -107,7 +101,7 @@ export default function Home() {
       const data = await response.json()
       setGeneratedContent(data)
       
-      toast.success('🔄 Hook remixed successfully!', {
+      toast.success('🔄 Content remixed successfully!', {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -135,46 +129,66 @@ export default function Home() {
 
   return (
     <ErrorBoundary>
-      <div className={styles.layout}>
-        <main className={styles.main}>
+      <div className={styles.container}>
+        {/* Hero Section with Form */}
+        <section id="hero" className={styles.heroSection}>
           <Hero 
             onGenerate={handleGenerate}
             onRemix={handleRemix}
             isLoading={isLoading || isRemixing}
             canRemix={!!generatedContent}
           />
-          
-          {error && (
-            <div className={styles.error}>
-              {error}
+        </section>
+        
+        {/* Generated Content Section - Directly below form */}
+        {(generatedContent || error) && (
+          <section className={styles.outputSection} data-output-section>
+            <div className={styles.contentSection}>
+              {error && (
+                <div className={styles.error}>
+                  {error}
+                </div>
+              )}
+              
+              {generatedContent && (
+                <EnhancedOutputDisplay
+                  content={generatedContent}
+                  topic={currentTopic}
+                  tone={currentTone}
+                />
+              )}
             </div>
-          )}
-          
-          {generatedContent && (
-            <div className={styles.resultsSection}>
-              <EnhancedOutputDisplay
-                content={generatedContent}
-                topic={currentTopic}
-                tone={currentTone}
-              />
+          </section>
+        )}
+        
+        {/* Demo and Feature Sections - Below output */}
+        <DemoCarousel />
+        
+        {/* CTA Section - Learn More */}
+        <section className={styles.ctaSection}>
+          <div className={styles.ctaContainer}>
+            <p className={styles.ctaText}>
+              Want to see how it works? 👉 <a href="/how-it-works" className={styles.ctaLink}>Learn More →</a>
+            </p>
+          </div>
+        </section>
+        
+        {/* Mini Feature Row */}
+        <section className={styles.miniFeatures}>
+          <div className={styles.featuresRow}>
+            <div className={styles.miniFeature}>
+              <span className={styles.miniFeatureIcon}>⚡</span>
+              <span className={styles.miniFeatureText}>Fast AI generation</span>
             </div>
-          )}
-        </main>
+            <div className={styles.miniFeature}>
+              <span className={styles.miniFeatureIcon}>🎯</span>
+              <span className={styles.miniFeatureText}>Tailored to your tone</span>
+            </div>
+          </div>
+        </section>
         
         <Footer />
-        
-        <ToastContainer
-          position="top-right"
-          autoClose={3000}
-          hideProgressBar={false}
-          newestOnTop={false}
-          closeOnClick
-          rtl={false}
-          pauseOnFocusLoss
-          draggable
-          pauseOnHover
-          theme="dark"
-        />
+        <ToastContainer />
       </div>
     </ErrorBoundary>
   )

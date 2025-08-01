@@ -1,43 +1,105 @@
 'use client'
 
 import { useState } from 'react'
+import { toast } from 'react-toastify'
 import styles from './OutputDisplay.module.css'
-import { GeneratedContent } from '../page'
+import { GeneratedContent } from '../types'
 
 interface OutputDisplayProps {
   content: GeneratedContent
+  topic: string
+  tone: string
 }
 
-export default function OutputDisplay({ content }: OutputDisplayProps) {
-  const copyToClipboard = async (text: string) => {
+export default function OutputDisplay({ content, topic, tone }: OutputDisplayProps) {
+  const [showSocialPreview, setShowSocialPreview] = useState(false)
+
+  const copyToClipboard = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      // You could add a toast notification here
+      toast.success(`✅ ${label} copied to clipboard!`, {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
     } catch (err) {
+      toast.error('❌ Failed to copy to clipboard', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
       console.error('Failed to copy text: ', err)
+    }
+  }
+
+  const saveToCollection = () => {
+    try {
+      const savedContent = {
+        id: Date.now().toString(),
+        topic,
+        tone,
+        hook: content.hooks[0],
+        title: content.titles[0],
+        hashtags: content.hashtags,
+        cta: content.ctas[0],
+        timestamp: Date.now()
+      }
+
+      const existing = localStorage.getItem('hooksy-saved-content')
+      const saved = existing ? JSON.parse(existing) : []
+      saved.push(savedContent)
+      localStorage.setItem('hooksy-saved-content', JSON.stringify(saved))
+
+      toast.success('💾 Content saved to collection!', {
+        position: "top-right",
+        autoClose: 2000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
+    } catch (err) {
+      toast.error('❌ Failed to save content', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
+      console.error('Failed to save content: ', err)
     }
   }
 
   return (
     <div className={styles.container}>
       <div className={styles.outputSection}>
-        <h3 className={styles.sectionTitle}>Generated Content</h3>
+        <h3 className={styles.sectionTitle}>
+          Generated Content
+        </h3>
         
         {/* Hook Section */}
         <div className={styles.section}>
-          <h4 className={styles.sectionLabel}>Hook</h4>
+          <div className={styles.sectionHeader}>
+            <h4 className={styles.sectionLabel}>Hook</h4>
+          </div>
           <div className={styles.contentCard}>
             <p className={styles.hookText}>{content.hooks[0]}</p>
-            <button
-              onClick={() => copyToClipboard(content.hooks[0])}
-              className={styles.copyButton}
-              title="Copy to clipboard"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
+            <div className={styles.actionButtons}>
+              <button
+                onClick={() => copyToClipboard(content.hooks[0], 'Hook')}
+                className={styles.copyButton}
+                title="Copy to clipboard"
+              >
+                📋
+              </button>
+            </div>
           </div>
         </div>
 
@@ -46,16 +108,15 @@ export default function OutputDisplay({ content }: OutputDisplayProps) {
           <h4 className={styles.sectionLabel}>Suggested Title</h4>
           <div className={styles.contentCard}>
             <p className={styles.titleText}>{content.titles[0]}</p>
-            <button
-              onClick={() => copyToClipboard(content.titles[0])}
-              className={styles.copyButton}
-              title="Copy to clipboard"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
+            <div className={styles.actionButtons}>
+              <button
+                onClick={() => copyToClipboard(content.titles[0], 'Title')}
+                className={styles.copyButton}
+                title="Copy to clipboard"
+              >
+                📋
+              </button>
+            </div>
           </div>
         </div>
 
@@ -64,16 +125,15 @@ export default function OutputDisplay({ content }: OutputDisplayProps) {
           <h4 className={styles.sectionLabel}>Hashtags</h4>
           <div className={styles.contentCard}>
             <p className={styles.hashtagText}>{content.hashtags.slice(0, 5).join(' ')}</p>
-            <button
-              onClick={() => copyToClipboard(content.hashtags.slice(0, 5).join(' '))}
-              className={styles.copyButton}
-              title="Copy to clipboard"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
+            <div className={styles.actionButtons}>
+              <button
+                onClick={() => copyToClipboard(content.hashtags.slice(0, 5).join(' '), 'Hashtags')}
+                className={styles.copyButton}
+                title="Copy to clipboard"
+              >
+                📋
+              </button>
+            </div>
           </div>
         </div>
 
@@ -82,18 +142,53 @@ export default function OutputDisplay({ content }: OutputDisplayProps) {
           <h4 className={styles.sectionLabel}>CTA</h4>
           <div className={styles.contentCard}>
             <p className={styles.ctaText}>{content.ctas[0]}</p>
-            <button
-              onClick={() => copyToClipboard(content.ctas[0])}
-              className={styles.copyButton}
-              title="Copy to clipboard"
-            >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
-              </svg>
-            </button>
+            <div className={styles.actionButtons}>
+              <button
+                onClick={() => copyToClipboard(content.ctas[0], 'CTA')}
+                className={styles.copyButton}
+                title="Copy to clipboard"
+              >
+                📋
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Main Action Buttons - Side by Side */}
+        <div className={styles.actionButtons}>
+          <button 
+            onClick={saveToCollection} 
+            className={styles.saveButton}
+          >
+            💾 Save to Collection
+          </button>
+          <button 
+            onClick={() => setShowSocialPreview(!showSocialPreview)} 
+            className={styles.previewButton}
+          >
+            📱 Social Preview
+          </button>
+        </div>
+
+        {/* Social Preview */}
+        {showSocialPreview && (
+          <div className={styles.socialPreview}>
+            <h4 className={styles.sectionLabel}>Social Caption Preview</h4>
+            <div className={styles.previewCard}>
+              <div className={styles.previewContent}>
+                <p className={styles.previewHook}>{content.hooks[0]}</p>
+                <p className={styles.previewTitle}>{content.titles[0]}</p>
+                <p className={styles.previewHashtags}>{content.hashtags.slice(0, 5).join(' ')}</p>
+              </div>
+              <button
+                onClick={() => copyToClipboard(`${content.hooks[0]}\n\n${content.titles[0]}\n\n${content.hashtags.slice(0, 5).join(' ')}`, 'Social caption')}
+                className={styles.copyPreviewButton}
+              >
+                📋 Copy Caption
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )

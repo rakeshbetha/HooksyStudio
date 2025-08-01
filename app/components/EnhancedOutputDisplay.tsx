@@ -5,6 +5,7 @@ import { toast } from 'react-toastify'
 import styles from './EnhancedOutputDisplay.module.css'
 import { GeneratedContent, SavedContent } from '../types'
 import { calculateHookScore } from '../utils/hookScore'
+import HookRemix from './HookRemix'
 
 interface EnhancedOutputDisplayProps {
   content: GeneratedContent
@@ -211,6 +212,9 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
           </div>
         )}
       </div>
+
+      {/* Hook Remix Section */}
+      <HookRemix originalHook={content.hooks[0]} />
     </div>
   )
 } 

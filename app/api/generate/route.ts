@@ -1,0 +1,136 @@
+import { NextRequest, NextResponse } from 'next/server'
+import OpenAI from 'openai'
+
+const openai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY,
+})
+
+export async function POST(request: NextRequest) {
+  try {
+    const { topic, tone, isRemix = false } = await request.json()
+
+    if (!topic || !tone) {
+      return NextResponse.json(
+        { error: 'Topic and tone are required' },
+        { status: 400 }
+      )
+    }
+
+    const getToneInstructions = (tone: string) => {
+      const toneMap: { [key: string]: string } = {
+        professional: "Use formal, authoritative language. Focus on expertise, credibility, and business value. Make it sound corporate and trustworthy.",
+        funny: "Use humor, wit, and playful language. Include jokes, puns, or clever wordplay. Make it entertaining and shareable.",
+        emotional: "Use heartfelt, passionate language. Appeal to feelings, personal stories, and emotional connections. Make it touching and relatable.",
+        shocking: "Use surprising, controversial, or unexpected language. Create intrigue and curiosity. Make it attention-grabbing and buzzworthy.",
+        educational: "Use informative, instructional language. Focus on learning, tips, and valuable insights. Make it educational and helpful.",
+        motivational: "Use inspiring, empowering language. Focus on achievement, success, and positive energy. Make it uplifting and encouraging."
+      }
+      return toneMap[tone] || toneMap.professional
+    }
+
+    const toneInstructions = getToneInstructions(tone)
+    
+    const remixInstruction = isRemix 
+      ? "\n\nIMPORTANT: This is a remix request. Create a completely different variation of the hook, title, hashtags, and CTA while maintaining the same topic and tone. Make it fresh and unique from the original."
+      : ""
+    
+    const prompt = `Generate viral content for the topic: "${topic}" with a ${tone} tone.
+
+Tone Instructions: ${toneInstructions}${remixInstruction}
+
+Please provide:
+1. 1 viral hook that grabs attention immediately (make it bold and compelling)
+2. 1 compelling title for social media posts
+3. 5 relevant hashtags for maximum reach (in blue color)
+4. 1 strong call-to-action (CTA) phrase (highlighted in yellow)
+
+Format the response as a JSON object with these exact keys:
+{
+  "hooks": ["hook1"],
+  "titles": ["title1"],
+  "hashtags": ["hashtag1", "hashtag2", "hashtag3", "hashtag4", "hashtag5"],
+  "ctas": ["cta1"]
+}
+
+Make sure the hook is attention-grabbing and makes people want to read more. The title should be compelling and shareable. Hashtags should be relevant and trending. The CTA should be action-oriented and persuasive.`
+
+    const completion = await openai.chat.completions.create({
+      model: "gpt-3.5-turbo",
+      messages: [
+        {
+          role: "system",
+          content: "You are a viral content expert who specializes in creating engaging hooks, titles, hashtags, and CTAs for social media. Always respond with valid JSON format."
+        },
+        {
+          role: "user",
+          content: prompt
+        }
+      ],
+      temperature: 0.8,
+      max_tokens: 1000,
+    })
+
+    const responseText = completion.choices[0]?.message?.content
+
+    if (!responseText) {
+      throw new Error('No response from OpenAI')
+    }
+
+    // Try to parse the JSON response
+    let parsedResponse
+    try {
+      parsedResponse = JSON.parse(responseText)
+    } catch (parseError) {
+      // If JSON parsing fails, try to extract JSON from the response
+      const jsonMatch = responseText.match(/\{[\s\S]*\}/)
+      if (jsonMatch) {
+        parsedResponse = JSON.parse(jsonMatch[0])
+      } else {
+        throw new Error('Invalid response format from OpenAI')
+      }
+    }
+
+    // Validate the response structure
+    const requiredKeys = ['hooks', 'titles', 'hashtags', 'ctas']
+    const hasAllKeys = requiredKeys.every(key => 
+      Array.isArray(parsedResponse[key]) && parsedResponse[key].length > 0
+    )
+
+    if (!hasAllKeys) {
+      throw new Error('Invalid response structure from OpenAI')
+    }
+
+    return NextResponse.json(parsedResponse)
+
+  } catch (error) {
+    console.error('Error generating content:', error)
+    
+    if (error instanceof Error) {
+      if (error.message.includes('API key')) {
+        return NextResponse.json(
+          { error: 'OpenAI API key not configured. Please check your .env.local file.' },
+          { status: 500 }
+        )
+      }
+      
+      if (error.message.includes('401')) {
+        return NextResponse.json(
+          { error: 'Invalid OpenAI API key. Please check your API key.' },
+          { status: 500 }
+        )
+      }
+      
+      if (error.message.includes('429')) {
+        return NextResponse.json(
+          { error: 'Rate limit exceeded. Please try again later.' },
+          { status: 500 }
+        )
+      }
+    }
+
+    return NextResponse.json(
+      { error: `Failed to generate content: ${error instanceof Error ? error.message : 'Unknown error'}` },
+      { status: 500 }
+    )
+  }
+} 

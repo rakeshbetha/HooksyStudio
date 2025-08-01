@@ -1,12 +1,27 @@
 import { NextRequest, NextResponse } from 'next/server'
 import OpenAI from 'openai'
 
+// Debug: Check if environment variable is loaded
+const apiKey = process.env.OPENAI_API_KEY
+if (!apiKey) {
+  console.error('OPENAI_API_KEY is not set in environment variables')
+  console.error('Available environment variables:', Object.keys(process.env).filter(key => key.includes('OPENAI')))
+}
+
 const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
+  apiKey: apiKey || '',
 })
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if API key is available
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: 'OpenAI API key not configured. Please check your .env.local file.' },
+        { status: 500 }
+      )
+    }
+
     const { topic, tone, isRemix = false } = await request.json()
 
     if (!topic || !tone) {

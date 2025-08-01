@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import { motion, AnimatePresence } from 'framer-motion'
-import styles from './Saved.module.css'
+import styles from './saved.module.css'
 
 interface SavedContent {
   id: string

@@ -6,6 +6,7 @@ import styles from './EnhancedOutputDisplay.module.css'
 import { GeneratedContent, SavedContent } from '../types'
 import { calculateHookScore } from '../utils/hookScore'
 import HookRemix from './HookRemix'
+import { playSound } from '../utils/soundEffects'
 
 interface EnhancedOutputDisplayProps {
   content: GeneratedContent
@@ -23,6 +24,7 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
   const copyToClipboard = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text)
+      playSound('copy.mp3')
       toast.success(`✅ ${label} copied to clipboard!`, {
         position: "top-right",
         autoClose: 2000,
@@ -32,6 +34,7 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         draggable: true,
       })
     } catch (err) {
+      playSound('error.mp3')
       toast.error('❌ Failed to copy to clipboard', {
         position: "top-right",
         autoClose: 3000,
@@ -63,6 +66,9 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
       saved.push(savedContent)
       localStorage.setItem('hooksy-saved-content', JSON.stringify(saved))
 
+      // Play save sound
+      playSound('save.mp3')
+
       toast.success('💾 Hook saved to collection!', {
         position: "top-right",
         autoClose: 3000,
@@ -72,6 +78,8 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         draggable: true,
       })
     } catch (err) {
+      // Play error sound
+      playSound('error.mp3')
       toast.error('❌ Failed to save content', {
         position: "top-right",
         autoClose: 3000,
@@ -214,7 +222,7 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
       </div>
 
       {/* Hook Remix Section */}
-      <HookRemix originalHook={content.hooks[0]} />
+      <HookRemix originalHook={content.hooks[0]} originalTopic={topic} />
     </div>
   )
 } 

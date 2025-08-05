@@ -534,12 +534,20 @@ export default function SavedPage() {
                     <h3 className={styles.cardTitle}>{item.topic}</h3>
                     {item.isPinned && <span className={styles.pinIndicator}>📌</span>}
                   </div>
-                  <span 
-                    className={styles.cardTone}
-                    style={{ backgroundColor: getToneColor(item.tone) }}
-                  >
-                    {getToneIcon(item.tone)} {item.tone}
-                  </span>
+                  <div className={styles.cardHeaderRight}>
+                    {/* Remix Indicator */}
+                    {item.customTags && item.customTags.includes('remix') && (
+                      <span className={styles.remixIndicator} title="This is a remix">
+                        🔁 Remix
+                      </span>
+                    )}
+                    <span 
+                      className={styles.cardTone}
+                      style={{ backgroundColor: getToneColor(item.tone) }}
+                    >
+                      {getToneIcon(item.tone)} {item.tone}
+                    </span>
+                  </div>
                 </div>
                 
                 <div className={styles.cardMeta}>
@@ -604,6 +612,7 @@ export default function SavedPage() {
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.3 }}
                     >
+                      {/* Hook Section - Always show */}
                       <div className={styles.detailSection}>
                         <h4 className={styles.detailTitle}>🎣 Hook</h4>
                         <p className={styles.detailText}>{item.hook}</p>
@@ -615,41 +624,53 @@ export default function SavedPage() {
                         </button>
                       </div>
                       
-                      <div className={styles.detailSection}>
-                        <h4 className={styles.detailTitle}>📝 Title</h4>
-                        <p className={styles.detailText}>{item.title}</p>
-                        <button
-                          onClick={() => copyToClipboard(item.title, 'Title')}
-                          className={styles.copyButton}
-                        >
-                          📋 Copy Title
-                        </button>
-                      </div>
+                      {/* Title Section - Only show if not empty and not a placeholder */}
+                      {item.title && 
+                       item.title.trim() !== '' && 
+                       !item.title.includes('[Remix]') && 
+                       !item.title.startsWith('[') && (
+                        <div className={styles.detailSection}>
+                          <h4 className={styles.detailTitle}>📝 Title</h4>
+                          <p className={styles.detailText}>{item.title}</p>
+                          <button
+                            onClick={() => copyToClipboard(item.title, 'Title')}
+                            className={styles.copyButton}
+                          >
+                            📋 Copy Title
+                          </button>
+                        </div>
+                      )}
                       
-                      <div className={styles.detailSection}>
-                        <h4 className={styles.detailTitle}>🏷️ Hashtags</h4>
-                        <p className={styles.detailText}>{item.hashtags.slice(0, 5).join(' ')}</p>
-                        <button
-                          onClick={() => copyToClipboard(item.hashtags.slice(0, 5).join(' '), 'Hashtags')}
-                          className={styles.copyButton}
-                        >
-                          📋 Copy Hashtags
-                        </button>
-                      </div>
+                      {/* Hashtags Section - Only show if hashtags exist */}
+                      {item.hashtags && item.hashtags.length > 0 && (
+                        <div className={styles.detailSection}>
+                          <h4 className={styles.detailTitle}>🏷️ Hashtags</h4>
+                          <p className={styles.detailText}>{item.hashtags.slice(0, 5).join(' ')}</p>
+                          <button
+                            onClick={() => copyToClipboard(item.hashtags.slice(0, 5).join(' '), 'Hashtags')}
+                            className={styles.copyButton}
+                          >
+                            📋 Copy Hashtags
+                          </button>
+                        </div>
+                      )}
                       
-                      <div className={styles.detailSection}>
-                        <h4 className={styles.detailTitle}>🎯 CTA</h4>
-                        <p className={styles.detailText}>{item.cta}</p>
-                        <button
-                          onClick={() => copyToClipboard(item.cta, 'CTA')}
-                          className={styles.copyButton}
-                        >
-                          📋 Copy CTA
-                        </button>
-                      </div>
+                      {/* CTA Section - Only show if CTA exists and not empty */}
+                      {item.cta && item.cta.trim() !== '' && (
+                        <div className={styles.detailSection}>
+                          <h4 className={styles.detailTitle}>🎯 CTA</h4>
+                          <p className={styles.detailText}>{item.cta}</p>
+                          <button
+                            onClick={() => copyToClipboard(item.cta, 'CTA')}
+                            className={styles.copyButton}
+                          >
+                            📋 Copy CTA
+                          </button>
+                        </div>
+                      )}
 
-                      {/* Notes Section */}
-                      {item.notes && (
+                      {/* Notes Section - Only show if notes exist and not empty */}
+                      {item.notes && item.notes.trim() !== '' && (
                         <div className={styles.detailSection}>
                           <h4 className={styles.detailTitle}>📝 Notes</h4>
                           <p className={styles.detailText}>{item.notes}</p>

@@ -3,9 +3,11 @@
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 import styles from './HookRemix.module.css'
+import { playSound } from '../utils/soundEffects'
 
 interface HookRemixProps {
   originalHook: string
+  originalTopic?: string
 }
 
 interface Remixes {
@@ -15,6 +17,20 @@ interface Remixes {
   educational: string
   motivational: string
   professional: string
+}
+
+interface SavedContent {
+  id: string
+  topic: string
+  tone: string
+  hook: string
+  title: string
+  hashtags: string[]
+  cta: string
+  timestamp: number
+  notes?: string
+  customTags?: string[]
+  isPinned?: boolean
 }
 
 const toneIcons = {
@@ -35,10 +51,11 @@ const toneLabels = {
   professional: 'Professional'
 }
 
-export default function HookRemix({ originalHook }: HookRemixProps) {
+export default function HookRemix({ originalHook, originalTopic = 'Custom Hook' }: HookRemixProps) {
   const [hook, setHook] = useState(originalHook)
   const [remixes, setRemixes] = useState<Partial<Remixes>>({})
   const [loading, setLoading] = useState(false)
+  const [savedRemixes, setSavedRemixes] = useState<Set<string>>(new Set())
 
   const handleRemix = async () => {
     if (!hook.trim()) {
@@ -64,6 +81,9 @@ export default function HookRemix({ originalHook }: HookRemixProps) {
       const data = await response.json()
       setRemixes(data)
       
+      // Play remix success sound
+      playSound('remix.mp3')
+      
       toast.success('🎉 Remixes generated successfully!', {
         position: "top-right",
         autoClose: 3000,
@@ -75,6 +95,10 @@ export default function HookRemix({ originalHook }: HookRemixProps) {
     } catch (error) {
       console.error('Remix generation error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate remixes'
+      
+      // Play error sound
+      playSound('error.mp3')
+      
       toast.error(`❌ ${errorMessage}`, {
         position: "top-right",
         autoClose: 5000,
@@ -91,6 +115,7 @@ export default function HookRemix({ originalHook }: HookRemixProps) {
   const copyToClipboard = async (text: string, tone: string) => {
     try {
       await navigator.clipboard.writeText(text)
+      playSound('copy.mp3')
       toast.success(`✅ ${toneLabels[tone as keyof typeof toneLabels]} remix copied!`, {
         position: "top-right",
         autoClose: 2000,
@@ -100,7 +125,77 @@ export default function HookRemix({ originalHook }: HookRemixProps) {
         draggable: true,
       })
     } catch (err) {
+      playSound('error.mp3')
       toast.error('❌ Failed to copy to clipboard', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
+    }
+  }
+
+  const saveRemix = (remixText: string, tone: string) => {
+    try {
+      // Check if this remix is already saved
+      if (savedRemixes.has(remixText)) {
+        toast.info('ℹ️ This remix is already saved!', {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        })
+        return
+      }
+
+      // Create new saved content object
+      const newSavedContent: SavedContent = {
+        id: Date.now().toString() + Math.random().toString(36).substr(2, 9),
+        topic: `Remix of: ${originalTopic}`,
+        tone: toneLabels[tone as keyof typeof toneLabels],
+        hook: remixText,
+        title: `[${toneLabels[tone as keyof typeof toneLabels]} Remix]`,
+        hashtags: [],
+        cta: '',
+        timestamp: Date.now(),
+        notes: `Saved from remix generator - Original: "${originalHook}"`,
+        customTags: ['remix', tone],
+        isPinned: false
+      }
+
+      // Get existing saved content
+      const existing = localStorage.getItem('hooksy-saved-content')
+      const saved = existing ? JSON.parse(existing) : []
+      
+      // Add new remix to saved content
+      saved.push(newSavedContent)
+      localStorage.setItem('hooksy-saved-content', JSON.stringify(saved))
+
+      // Update saved remixes set
+      setSavedRemixes(prev => new Set([...Array.from(prev), remixText]))
+
+      // Play save sound
+      playSound('save.mp3')
+
+      toast.success(`✅ ${toneLabels[tone as keyof typeof toneLabels]} remix saved to your collection!`, {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
+    } catch (error) {
+      console.error('Failed to save remix:', error)
+      
+      // Play error sound
+      playSound('error.mp3')
+      
+      toast.error('❌ Failed to save remix to collection', {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -158,13 +253,23 @@ export default function HookRemix({ originalHook }: HookRemixProps) {
                   <h4 className={styles.toneTitle}>
                     {toneIcons[tone as keyof typeof toneIcons]} {toneLabels[tone as keyof typeof toneLabels]}
                   </h4>
-                  <button
-                    onClick={() => copyToClipboard(remixHook, tone)}
-                    className={styles.copyButton}
-                    title={`Copy ${toneLabels[tone as keyof typeof toneLabels]} remix`}
-                  >
-                    📋
-                  </button>
+                  <div className={styles.actionButtons}>
+                    <button
+                      onClick={() => copyToClipboard(remixHook, tone)}
+                      className={styles.copyButton}
+                      title={`Copy ${toneLabels[tone as keyof typeof toneLabels]} remix`}
+                    >
+                      📋
+                    </button>
+                    <button
+                      onClick={() => saveRemix(remixHook, tone)}
+                      className={`${styles.saveButton} ${savedRemixes.has(remixHook) ? styles.saved : ''}`}
+                      title={savedRemixes.has(remixHook) ? 'Already saved' : `Save ${toneLabels[tone as keyof typeof toneLabels]} remix`}
+                      disabled={savedRemixes.has(remixHook)}
+                    >
+                      {savedRemixes.has(remixHook) ? '✅' : '💾'}
+                    </button>
+                  </div>
                 </div>
                 <p className={styles.remixText}>
                   "{remixHook}"

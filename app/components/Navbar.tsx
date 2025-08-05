@@ -1,15 +1,16 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { motion, AnimatePresence } from 'framer-motion'
 import styles from './Navbar.module.css'
+import SoundToggle from './SoundToggle'
 
-const Navbar = () => {
+export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true) // Default to dark mode
+  const [isDarkMode, setIsDarkMode] = useState(true)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -21,152 +22,143 @@ const Navbar = () => {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Load theme preference from localStorage on mount
   useEffect(() => {
+    // Load theme preference from localStorage
     const savedTheme = localStorage.getItem('hooksy-theme')
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark')
     }
   }, [])
 
-  // Apply theme changes
   useEffect(() => {
-    const root = document.documentElement
-    if (isDarkMode) {
-      root.classList.add('dark')
-      root.classList.remove('light')
-      localStorage.setItem('hooksy-theme', 'dark')
-    } else {
-      root.classList.add('light')
-      root.classList.remove('dark')
-      localStorage.setItem('hooksy-theme', 'light')
-    }
+    // Apply theme to document
+    document.documentElement.className = isDarkMode ? 'dark' : 'light'
+    localStorage.setItem('hooksy-theme', isDarkMode ? 'dark' : 'light')
   }, [isDarkMode])
-
-  const toggleMenu = () => {
-    setIsMenuOpen(!isMenuOpen)
-  }
 
   const toggleDarkMode = () => {
     setIsDarkMode(!isDarkMode)
   }
 
-  const navLinks = [
-    { href: '/', label: 'Home' },
-    { href: '/saved', label: 'Saved' },
-    { href: '/how-it-works', label: 'How It Works' },
-    { href: '/contact', label: 'Contact' }
-  ]
+  const toggleMenu = () => {
+    setIsMenuOpen(!isMenuOpen)
+  }
 
-  const isActiveLink = (href: string) => {
-    if (href === '/') {
-      return pathname === '/'
-    }
-    return pathname.startsWith(href)
+  const closeMenu = () => {
+    setIsMenuOpen(false)
+  }
+
+  const isActive = (path: string) => {
+    return pathname === path
   }
 
   return (
     <motion.nav 
-      className={`${styles.navbar} ${isScrolled ? styles.scrolled : ''} ${isDarkMode ? styles.dark : styles.light}`}
+      className={`${styles.navbar} ${isDarkMode ? styles.dark : styles.light} ${isScrolled ? styles.scrolled : ''}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
     >
       <div className={styles.container}>
         {/* Logo and Brand */}
-        <Link href="/" className={styles.brand}>
-          <motion.div 
-            className={styles.logo}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-          >
-            <div className={styles.logoIcon}>
-              <div className={styles.hookShape}></div>
-              <div className={styles.star}></div>
-            </div>
-            <span className={styles.brandText}>Hooksy.studio</span>
-          </motion.div>
+        <Link href="/" className={styles.logo} onClick={closeMenu}>
+          <div className={styles.logoIcon}>🎣</div>
+          <span className={styles.logoText}>Hooksy.studio</span>
         </Link>
 
         {/* Desktop Navigation */}
         <div className={styles.desktopNav}>
-          {navLinks.map((link) => (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`${styles.navLink} ${isActiveLink(link.href) ? styles.active : ''}`}
-            >
-              <motion.span
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-              >
-                {link.label}
-              </motion.span>
-            </Link>
-          ))}
+          <Link 
+            href="/" 
+            className={`${styles.navLink} ${isActive('/') ? styles.active : ''}`}
+          >
+            Home
+          </Link>
+          <Link 
+            href="/saved" 
+            className={`${styles.navLink} ${isActive('/saved') ? styles.active : ''}`}
+          >
+            Saved
+          </Link>
+          <Link 
+            href="/how-it-works" 
+            className={`${styles.navLink} ${isActive('/how-it-works') ? styles.active : ''}`}
+          >
+            How It Works
+          </Link>
+          <Link 
+            href="/contact" 
+            className={`${styles.navLink} ${isActive('/contact') ? styles.active : ''}`}
+          >
+            Contact
+          </Link>
         </div>
 
         {/* Right Side Controls */}
         <div className={styles.controls}>
-          {/* Dark Mode Toggle */}
-          <motion.button
-            className={styles.darkModeToggle}
+          <SoundToggle />
+          <button
             onClick={toggleDarkMode}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            title={isDarkMode ? "Switch to Light Mode" : "Switch to Dark Mode"}
+            className={styles.darkModeToggle}
+            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
           >
             {isDarkMode ? '☀️' : '🌙'}
-          </motion.button>
-
+          </button>
+          
           {/* Mobile Menu Button */}
-          <motion.button
-            className={styles.hamburger}
+          <button
             onClick={toggleMenu}
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-            aria-label="Toggle navigation menu"
-            aria-expanded={isMenuOpen}
+            className={styles.hamburger}
+            aria-label="Toggle menu"
           >
             <span className={`${styles.hamburgerLine} ${isMenuOpen ? styles.open : ''}`}></span>
             <span className={`${styles.hamburgerLine} ${isMenuOpen ? styles.open : ''}`}></span>
             <span className={`${styles.hamburgerLine} ${isMenuOpen ? styles.open : ''}`}></span>
-          </motion.button>
+          </button>
         </div>
       </div>
 
       {/* Mobile Navigation */}
       <AnimatePresence>
         {isMenuOpen && (
-          <motion.div
+          <motion.div 
             className={styles.mobileNav}
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            transition={{ duration: 0.3 }}
           >
-            <div className={styles.mobileNavContent}>
-              {navLinks.map((link) => (
-                <Link
-                  key={link.href}
-                  href={link.href}
-                  className={`${styles.mobileNavLink} ${isActiveLink(link.href) ? styles.active : ''}`}
-                  onClick={() => setIsMenuOpen(false)}
-                >
-                  <motion.span
-                    whileHover={{ x: 10 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    {link.label}
-                  </motion.span>
-                </Link>
-              ))}
-            </div>
+            <Link 
+              href="/" 
+              className={`${styles.mobileNavLink} ${isActive('/') ? styles.active : ''}`}
+              onClick={closeMenu}
+            >
+              Home
+            </Link>
+            <Link 
+              href="/saved" 
+              className={`${styles.mobileNavLink} ${isActive('/saved') ? styles.active : ''}`}
+              onClick={closeMenu}
+            >
+              Saved
+            </Link>
+            <Link 
+              href="/how-it-works" 
+              className={`${styles.mobileNavLink} ${isActive('/how-it-works') ? styles.active : ''}`}
+              onClick={closeMenu}
+            >
+              How It Works
+            </Link>
+            <Link 
+              href="/contact" 
+              className={`${styles.mobileNavLink} ${isActive('/contact') ? styles.active : ''}`}
+              onClick={closeMenu}
+            >
+              Contact
+            </Link>
           </motion.div>
         )}
       </AnimatePresence>
     </motion.nav>
   )
-}
-
-export default Navbar 
+} 

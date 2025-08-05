@@ -3,12 +3,13 @@
 import { useState, useEffect } from 'react'
 import { toast } from 'react-toastify'
 import styles from './Hero.module.css'
+import { playSound } from '../utils/soundEffects'
 
 interface HeroProps {
-  onGenerate: (topic: string, tone: string) => void
-  onRemix?: (topic: string, tone: string) => void
+  onGenerate: (topic: string, tone: string) => Promise<void>
+  onRemix: (topic: string, tone: string) => Promise<void>
   isLoading: boolean
-  canRemix?: boolean
+  canRemix: boolean
 }
 
 const toneOptions = [
@@ -23,72 +24,34 @@ const toneOptions = [
 const dailyHooks = [
   "This 5-second mindset shift will change how you create forever.",
   "The secret to viral content that nobody talks about.",
-  "Why 99% of creators fail (and how to be the 1%).",
+  "Why 90% of creators fail (and how to avoid it).",
   "The one thing that separates successful creators from everyone else.",
-  "This simple trick will 10x your engagement overnight.",
-  "The truth about going viral that most people don't want to hear.",
-  "How I went from 0 to 100k followers in 30 days.",
-  "The biggest mistake creators make (and how to avoid it).",
-  "Why your content isn't getting the views it deserves.",
-  "The psychology behind viral hooks that convert.",
-  "This mindset change made me a top 1% creator.",
-  "The formula for creating content that spreads like wildfire.",
-  "Why most people will never go viral (and how to be different).",
-  "The hidden pattern in every viral post.",
-  "How to make your audience obsessed with your content."
+  "How to turn any topic into engaging content in 30 seconds.",
+  "The psychology behind why people share content.",
+  "Why your content isn't getting the reach it deserves.",
+  "The hidden pattern in all viral posts."
 ]
 
-export default function Hero({ onGenerate, onRemix, isLoading, canRemix = false }: HeroProps) {
+export default function Hero({ onGenerate, onRemix, isLoading, canRemix }: HeroProps) {
   const [topic, setTopic] = useState('')
   const [tone, setTone] = useState('professional')
   const [currentHook, setCurrentHook] = useState('')
   const [isCopied, setIsCopied] = useState(false)
 
   useEffect(() => {
-    // Get today's date as a seed for consistent daily rotation
+    // Set current hook based on date
     const today = new Date()
-    const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
-    const hookIndex = seed % dailyHooks.length
+    const dayOfYear = Math.floor((today.getTime() - new Date(today.getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24))
+    const hookIndex = dayOfYear % dailyHooks.length
     setCurrentHook(dailyHooks[hookIndex])
   }, [])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (topic.trim()) {
-      await onGenerate(topic.trim(), tone)
-      // Smooth scroll to output section after generation
-      setTimeout(() => {
-        const outputSection = document.querySelector('[data-output-section]')
-        if (outputSection) {
-          outputSection.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-          })
-        }
-      }, 100)
-    }
-  }
-
-  const handleRemix = async () => {
-    if (topic.trim() && onRemix) {
-      await onRemix(topic.trim(), tone)
-      // Smooth scroll to output section after remix
-      setTimeout(() => {
-        const outputSection = document.querySelector('[data-output-section]')
-        if (outputSection) {
-          outputSection.scrollIntoView({ 
-            behavior: 'smooth',
-            block: 'start'
-          })
-        }
-      }, 100)
-    }
-  }
 
   const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(currentHook)
-      toast.success('✅ Hook of the Day copied!', {
+      setIsCopied(true)
+      playSound('copy.mp3')
+      toast.success('✅ Hook copied to clipboard!', {
         position: "top-right",
         autoClose: 2000,
         hideProgressBar: false,
@@ -96,10 +59,9 @@ export default function Hero({ onGenerate, onRemix, isLoading, canRemix = false 
         pauseOnHover: true,
         draggable: true,
       })
-      setIsCopied(true)
       setTimeout(() => setIsCopied(false), 2000)
     } catch (err) {
-      toast.error('❌ Failed to copy hook', {
+      toast.error('❌ Failed to copy to clipboard', {
         position: "top-right",
         autoClose: 3000,
         hideProgressBar: false,
@@ -110,26 +72,68 @@ export default function Hero({ onGenerate, onRemix, isLoading, canRemix = false 
     }
   }
 
+  const scrollToForm = () => {
+    const formElement = document.querySelector('#content-form')
+    if (formElement) {
+      formElement.scrollIntoView({ behavior: 'smooth', block: 'start' })
+    }
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (topic.trim()) {
+      playSound('generate.mp3')
+      await onGenerate(topic.trim(), tone)
+      // Smooth scroll to output section after generation
+      setTimeout(() => {
+        const outputSection = document.querySelector('[data-output-section]')
+        if (outputSection) {
+          outputSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          })
+        }
+      }, 100)
+    }
+  }
+
+  const handleRemix = async () => {
+    if (topic.trim() && onRemix) {
+      playSound('remix.mp3')
+      await onRemix(topic.trim(), tone)
+      // Smooth scroll to output section after remix
+      setTimeout(() => {
+        const outputSection = document.querySelector('[data-output-section]')
+        if (outputSection) {
+          outputSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          })
+        }
+      }, 100)
+    }
+  }
+
   return (
-    <section className={styles.hero}>
-      <div className={styles.container}>
-        <div className={styles.content}>
-          <h1 className={styles.title}>
-            Generate Viral Hooks, Titles, Hashtags & CTAs with AI
-          </h1>
-          <p className={styles.subtitle}>
-            Craft scroll-stopping content in seconds
-          </p>
-          
-          {/* Hook of the Day Section */}
-          {currentHook && (
-            <div className={styles.hookOfTheDay}>
-              <h3 className={styles.hookTitle}>
-                🔥 Hooksy's Hook of the Day
-              </h3>
-              <p className={styles.hookText}>
-                "{currentHook}"
-              </p>
+    <div className={styles.hero}>
+      <div className={styles.content}>
+        <h1 className={styles.title}>
+          Create Viral Content in Seconds
+        </h1>
+        <p className={styles.subtitle}>
+          Craft scroll-stopping content in seconds
+        </p>
+
+        {/* Hook of the Day Section */}
+        {currentHook && (
+          <div className={styles.hookOfTheDay}>
+            <h3 className={styles.hookTitle}>
+              🔥 Hooksy's Hook of the Day
+            </h3>
+            <p className={styles.hookText}>
+              "{currentHook}"
+            </p>
+            <div className={styles.actionButtons}>
               <button
                 onClick={copyToClipboard}
                 className={`${styles.copyHookButton} ${isCopied ? styles.copied : ''}`}
@@ -137,84 +141,74 @@ export default function Hero({ onGenerate, onRemix, isLoading, canRemix = false 
               >
                 {isCopied ? '✓ Copied!' : '📋 Copy Hook'}
               </button>
+              <button
+                onClick={scrollToForm}
+                className={styles.ctaButton}
+              >
+                Want more like this? → Try similar hook
+              </button>
             </div>
-          )}
-          
-          <div className={styles.card}>
-            <form onSubmit={handleSubmit} className={styles.form}>
-              <div className={styles.inputGroup}>
-                <label htmlFor="topic" className={styles.label}>
-                  📝 What's your topic?
-                </label>
-                <textarea
-                  id="topic"
-                  value={topic}
-                  onChange={(e) => setTopic(e.target.value)}
-                  placeholder="e.g., How to start a successful business, Fitness tips for beginners, Cooking healthy meals..."
-                  className={styles.textarea}
-                  rows={3}
-                  required
-                />
-              </div>
-
-              <div className={styles.inputGroup}>
-                <label htmlFor="tone" className={styles.label}>
-                  🎭 Choose your tone
-                </label>
-                <select
-                  id="tone"
-                  value={tone}
-                  onChange={(e) => setTone(e.target.value)}
-                  className={styles.select}
-                >
-                  {toneOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.emoji} {option.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              <div className={styles.buttonGroup}>
-                <button
-                  type="submit"
-                  disabled={!topic.trim() || isLoading}
-                  className={styles.button}
-                >
-                  {isLoading ? (
-                    <div className={styles.loading}>
-                      <div className={styles.spinner}></div>
-                      Generating...
-                    </div>
-                  ) : (
-                    'Generate Viral Content'
-                  )}
-                </button>
-                
-                {canRemix && onRemix && (
-                  <button
-                    type="button"
-                    onClick={handleRemix}
-                    disabled={!topic.trim() || isLoading}
-                    className={styles.remixButton}
-                  >
-                    {isLoading ? (
-                      <div className={styles.loading}>
-                        <div className={styles.spinner}></div>
-                        Remixing...
-                      </div>
-                    ) : (
-                      <>
-                        🔁 Remix Hook
-                      </>
-                    )}
-                  </button>
-                )}
-              </div>
-            </form>
           </div>
+        )}
+
+        <div className={styles.card} id="content-form">
+          <form onSubmit={handleSubmit} className={styles.form}>
+            <div className={styles.inputGroup}>
+              <label htmlFor="topic" className={styles.label}>
+                What's your topic? 🎯
+              </label>
+              <textarea
+                id="topic"
+                value={topic}
+                onChange={(e) => setTopic(e.target.value)}
+                placeholder="e.g., How to build a successful business, The psychology of motivation, AI tools for productivity..."
+                className={styles.textarea}
+                rows={3}
+                required
+              />
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label htmlFor="tone" className={styles.label}>
+                Choose your tone 🎭
+              </label>
+              <select
+                id="tone"
+                value={tone}
+                onChange={(e) => setTone(e.target.value)}
+                className={styles.select}
+              >
+                {toneOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.emoji} {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.buttonGroup}>
+              <button
+                type="submit"
+                disabled={isLoading || !topic.trim()}
+                className={styles.generateButton}
+              >
+                {isLoading ? 'Generating...' : 'Generate Viral Content'}
+              </button>
+              
+              {canRemix && (
+                <button
+                  type="button"
+                  onClick={handleRemix}
+                  disabled={isLoading || !topic.trim()}
+                  className={styles.remixButton}
+                >
+                  Remix Hook
+                </button>
+              )}
+            </div>
+          </form>
         </div>
       </div>
-    </section>
+    </div>
   )
 } 

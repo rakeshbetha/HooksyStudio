@@ -1,106 +1,140 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { toast } from 'react-toastify'
 import styles from './HookOfTheDay.module.css'
 
-const dailyHooks = [
-  "This 5-second mindset shift will change how you create forever.",
-  "The secret to viral content that nobody talks about.",
-  "Why 99% of creators fail (and how to be the 1%).",
-  "The one thing that separates successful creators from everyone else.",
-  "This simple trick will 10x your engagement overnight.",
-  "The truth about going viral that most people don't want to hear.",
-  "How I went from 0 to 100k followers in 30 days.",
-  "The biggest mistake creators make (and how to avoid it).",
-  "Why your content isn't getting the views it deserves.",
-  "The psychology behind viral hooks that convert.",
-  "This mindset change made me a top 1% creator.",
-  "The formula for creating content that spreads like wildfire.",
-  "Why most people will never go viral (and how to be different).",
-  "The hidden pattern in every viral post.",
-  "How to make your audience obsessed with your content."
+interface HookTip {
+  type: 'hook' | 'tip'
+  title: string
+  content: string
+  emoji: string
+  category: string
+}
+
+const hookTips: HookTip[] = [
+  {
+    type: 'hook',
+    title: 'Creative Hook of the Day',
+    content: '"What if I told you that the most successful creators have one thing in common? They all started with a hook that made people stop scrolling."',
+    emoji: '🎣',
+    category: 'Psychology'
+  },
+  {
+    type: 'tip',
+    title: 'Viral Tip from Hooksy AI',
+    content: 'Use the "curiosity gap" technique: Give your audience a taste of what they\'ll learn, but leave them wanting more. It\'s the oldest trick in the book that still works!',
+    emoji: '🧠',
+    category: 'Strategy'
+  },
+  {
+    type: 'hook',
+    title: 'Creative Hook of the Day',
+    content: '"The 3-second rule: If your hook doesn\'t grab attention in the first 3 seconds, you\'ve already lost 80% of your audience."',
+    emoji: '⏱️',
+    category: 'Timing'
+  },
+  {
+    type: 'tip',
+    title: 'Viral Tip from Hooksy AI',
+    content: 'Start with a question that your audience can\'t help but answer in their head. Questions create instant engagement and make people feel involved.',
+    emoji: '❓',
+    category: 'Engagement'
+  },
+  {
+    type: 'hook',
+    title: 'Creative Hook of the Day',
+    content: '"Behind every viral post is a creator who understood this simple truth: People don\'t share content, they share emotions."',
+    emoji: '💫',
+    category: 'Emotion'
+  },
+  {
+    type: 'tip',
+    title: 'Viral Tip from Hooksy AI',
+    content: 'Use power words that trigger emotions: "Shocking," "Secret," "Hidden," "Exposed," "Revealed." These words are proven to increase click-through rates by 300%.',
+    emoji: '⚡',
+    category: 'Copywriting'
+  },
+  {
+    type: 'hook',
+    title: 'Creative Hook of the Day',
+    content: '"The difference between a good hook and a great hook? One makes people think, the other makes people feel."',
+    emoji: '❤️',
+    category: 'Connection'
+  },
+  {
+    type: 'tip',
+    title: 'Viral Tip from Hooksy AI',
+    content: 'Create urgency without being pushy. Use phrases like "Before you scroll past this" or "If you\'re still reading this" to create a sense of exclusivity.',
+    emoji: '🚀',
+    category: 'Urgency'
+  }
 ]
 
 export default function HookOfTheDay() {
-  const [currentHook, setCurrentHook] = useState('')
-  const [isCopied, setIsCopied] = useState(false)
+  const [currentTip, setCurrentTip] = useState<HookTip>(hookTips[0])
+  const [isVisible, setIsVisible] = useState(false)
+  const [isAnimating, setIsAnimating] = useState(false)
 
   useEffect(() => {
-    // Get today's date as a seed for consistent daily rotation
-    const today = new Date()
-    const seed = today.getFullYear() * 10000 + (today.getMonth() + 1) * 100 + today.getDate()
-    const hookIndex = seed % dailyHooks.length
-    setCurrentHook(dailyHooks[hookIndex])
+    // Show the card after a short delay
+    const showTimer = setTimeout(() => {
+      setIsVisible(true)
+    }, 500)
+
+    return () => clearTimeout(showTimer)
   }, [])
 
-  const copyToClipboard = async () => {
-    try {
-      await navigator.clipboard.writeText(currentHook)
-      toast.success('✅ Hook of the Day copied!', {
-        position: "top-right",
-        autoClose: 2000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      })
-      setIsCopied(true)
-      setTimeout(() => setIsCopied(false), 2000)
-    } catch (err) {
-      toast.error('❌ Failed to copy hook', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      })
-    }
+  useEffect(() => {
+    // Rotate through tips every 30 seconds
+    const interval = setInterval(() => {
+      setIsAnimating(true)
+      setTimeout(() => {
+        const randomIndex = Math.floor(Math.random() * hookTips.length)
+        setCurrentTip(hookTips[randomIndex])
+        setIsAnimating(false)
+      }, 300) // Animation duration
+    }, 30000)
+
+    return () => clearInterval(interval)
+  }, [])
+
+  const handleRefresh = () => {
+    setIsAnimating(true)
+    setTimeout(() => {
+      const randomIndex = Math.floor(Math.random() * hookTips.length)
+      setCurrentTip(hookTips[randomIndex])
+      setIsAnimating(false)
+    }, 300)
   }
 
-  const scrollToForm = () => {
-    const heroSection = document.getElementById('hero')
-    if (heroSection) {
-      heroSection.scrollIntoView({ 
-        behavior: 'smooth',
-        block: 'start'
-      })
-    }
-  }
-
-  if (!currentHook) return null
+  if (!isVisible) return null
 
   return (
-    <div className={styles.container}>
-      <div className={styles.header}>
-        <h3 className={styles.title}>
-          🔥 Hooksy's Hook of the Day
-        </h3>
-        <p className={styles.subtitle}>
-          Get inspired by today's viral hook
-        </p>
-      </div>
-      
-      <div className={styles.hookCard}>
-        <p className={styles.hookText}>
-          "{currentHook}"
-        </p>
-        <div className={styles.actionButtons}>
-          <button
-            onClick={copyToClipboard}
-            className={`${styles.copyButton} ${isCopied ? styles.copied : ''}`}
-            disabled={isCopied}
+    <div className={`${styles.hookOfTheDay} ${isVisible ? styles.visible : ''}`}>
+      <div className={`${styles.card} ${isAnimating ? styles.animating : ''}`}>
+        <div className={styles.header}>
+          <div className={styles.emoji}>{currentTip.emoji}</div>
+          <div className={styles.titleContainer}>
+            <h3 className={styles.title}>{currentTip.title}</h3>
+            <span className={styles.category}>{currentTip.category}</span>
+          </div>
+          <button 
+            onClick={handleRefresh}
+            className={styles.refreshButton}
+            title="Get new tip"
           >
-            {isCopied ? '✓ Copied!' : '📋 Copy Hook'}
+            🔄
           </button>
-          
-          <button
-            onClick={scrollToForm}
-            className={styles.ctaButton}
-          >
-            Want more like this? → Try similar hook
-          </button>
+        </div>
+        
+        <div className={styles.content}>
+          <p className={styles.tipText}>{currentTip.content}</p>
+        </div>
+        
+        <div className={styles.footer}>
+          <div className={styles.sparkle}>✨</div>
+          <span className={styles.poweredBy}>Powered by Hooksy AI</span>
+          <div className={styles.sparkle}>✨</div>
         </div>
       </div>
     </div>

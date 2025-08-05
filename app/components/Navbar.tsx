@@ -5,12 +5,11 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import styles from './Navbar.module.css'
-import SoundToggle from './SoundToggle'
+import SettingsToggle from './SettingsToggle'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
-  const [isDarkMode, setIsDarkMode] = useState(true)
   const pathname = usePathname()
 
   useEffect(() => {
@@ -21,24 +20,6 @@ export default function Navbar() {
     window.addEventListener('scroll', handleScroll)
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
-
-  useEffect(() => {
-    // Load theme preference from localStorage
-    const savedTheme = localStorage.getItem('hooksy-theme')
-    if (savedTheme) {
-      setIsDarkMode(savedTheme === 'dark')
-    }
-  }, [])
-
-  useEffect(() => {
-    // Apply theme to document
-    document.documentElement.className = isDarkMode ? 'dark' : 'light'
-    localStorage.setItem('hooksy-theme', isDarkMode ? 'dark' : 'light')
-  }, [isDarkMode])
-
-  const toggleDarkMode = () => {
-    setIsDarkMode(!isDarkMode)
-  }
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen)
@@ -54,7 +35,7 @@ export default function Navbar() {
 
   return (
     <motion.nav 
-      className={`${styles.navbar} ${isDarkMode ? styles.dark : styles.light} ${isScrolled ? styles.scrolled : ''}`}
+      className={`${styles.navbar} ${isScrolled ? styles.scrolled : ''}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.5, ease: 'easeOut' }}
@@ -62,7 +43,11 @@ export default function Navbar() {
       <div className={styles.container}>
         {/* Logo and Brand */}
         <Link href="/" className={styles.logo} onClick={closeMenu}>
-          <div className={styles.logoIcon}>🎣</div>
+          <div className={styles.logoIcon}>
+            <div className={styles.hookShape}>
+              <div className={styles.star}></div>
+            </div>
+          </div>
           <span className={styles.logoText}>Hooksy.studio</span>
         </Link>
 
@@ -96,14 +81,7 @@ export default function Navbar() {
 
         {/* Right Side Controls */}
         <div className={styles.controls}>
-          <SoundToggle />
-          <button
-            onClick={toggleDarkMode}
-            className={styles.darkModeToggle}
-            title={isDarkMode ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
-          >
-            {isDarkMode ? '☀️' : '🌙'}
-          </button>
+          <SettingsToggle />
           
           {/* Mobile Menu Button */}
           <button

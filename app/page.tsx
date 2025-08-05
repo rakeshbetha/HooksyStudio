@@ -10,6 +10,8 @@ import EnhancedOutputDisplay from './components/EnhancedOutputDisplay'
 import Footer from './components/Footer'
 import ErrorBoundary from './components/ErrorBoundary'
 import { GeneratedContent } from './types'
+import { playSound } from './utils/soundEffects'
+import HookOfTheDay from './components/HookOfTheDay'
 
 export default function Home() {
   const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null)
@@ -47,6 +49,9 @@ export default function Home() {
 
       const data = await response.json()
       setGeneratedContent(data)
+      
+      // Play generate success sound
+      playSound('generate-pop.mp3')
       
       toast.success('🎉 Content generated successfully!', {
         position: "top-right",
@@ -100,6 +105,9 @@ export default function Home() {
 
       const data = await response.json()
       setGeneratedContent(data)
+      
+      // Play remix success sound (using generate-pop for faster response)
+      playSound('generate-pop.mp3')
       
       toast.success('🔄 Content remixed successfully!', {
         position: "top-right",
@@ -160,6 +168,9 @@ export default function Home() {
             </div>
           </section>
         )}
+        
+        {/* Hook of the Day - Shows after content generation */}
+        <HookOfTheDay />
         
         {/* Demo and Feature Sections - Below output */}
         <DemoCarousel />

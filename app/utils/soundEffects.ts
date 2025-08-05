@@ -19,7 +19,7 @@ class SoundManager {
   }
 
   /**
-   * Play a sound effect
+   * Play a sound effect with optimized loading
    */
   playSound(fileName: string, config: SoundConfig = {}) {
     if (!this.isEnabled) return
@@ -34,16 +34,21 @@ class SoundManager {
 
       // Reset and play
       audio.currentTime = 0
-      audio.play().catch((error) => {
-        console.warn(`Failed to play sound ${fileName}:`, error)
-      })
+      
+      // Use a promise to handle the play operation more efficiently
+      const playPromise = audio.play()
+      if (playPromise !== undefined) {
+        playPromise.catch((error) => {
+          console.warn(`Failed to play sound ${fileName}:`, error)
+        })
+      }
     } catch (error) {
       console.warn('Sound playback error:', error)
     }
   }
 
   /**
-   * Get or create audio element
+   * Get or create audio element with optimized loading
    */
   private getAudio(fileName: string): HTMLAudioElement | null {
     if (this.audioCache.has(fileName)) {
@@ -52,6 +57,8 @@ class SoundManager {
 
     try {
       const audio = new Audio(`/sounds/${fileName}`)
+      
+      // Optimize loading for better performance
       audio.preload = 'auto'
       
       // Cache the audio element
@@ -89,11 +96,24 @@ class SoundManager {
   }
 
   /**
-   * Preload all sounds
+   * Preload all sounds with priority for remix sound
    */
   preloadSounds() {
-    const sounds = ['generate.mp3', 'remix.mp3', 'save.mp3', 'copy.mp3', 'error.mp3']
-    sounds.forEach(sound => this.getAudio(sound))
+    const sounds = [
+      'toggle-click.mp3', // Load smallest sound first (used for save and toggle)
+      'generate-pop.mp3', // Load generate sound (used for both generate and remix)
+      'copy-blip.mp3', // Small sound for copy actions
+      'delete-soft.mp3', // Medium sound for delete
+      'save-confirm.mp3', // Large sound, load last (kept for potential future use)
+      'remix-bounce.mp3' // Largest sound, load last (kept for potential future use)
+    ]
+    
+    // Load sounds with a small delay between each to avoid blocking
+    sounds.forEach((sound, index) => {
+      setTimeout(() => {
+        this.getAudio(sound)
+      }, index * 100) // 100ms delay between each sound load
+    })
   }
 }
 

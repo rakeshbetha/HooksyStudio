@@ -61,12 +61,12 @@
 
 /* Light Theme Variables - Modern Palette */
 .light {
-  --color-background: #F8F8FF;
-  --color-surface: #EAE6F8;
-  --color-card: #FFFFFF;
-  --color-text: #1a1a2e;
-  --color-text-muted: #4a4a6a;
-  --color-border: #e8e8f0;
+  --color-background: #ffffff;
+  --color-surface: #f8fafc;
+  --color-card: #ffffff;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-border: #e2e8f0;
   --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05);
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.05);
   --shadow-lg: 0 8px 25px rgba(0, 0, 0, 0.05);

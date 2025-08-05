@@ -81,8 +81,8 @@ export default function HookRemix({ originalHook, originalTopic = 'Custom Hook' 
       const data = await response.json()
       setRemixes(data)
       
-      // Play remix success sound
-      playSound('remix.mp3')
+      // Play remix success sound (using generate-pop for faster response)
+      playSound('generate-pop.mp3')
       
       toast.success('🎉 Remixes generated successfully!', {
         position: "top-right",
@@ -96,8 +96,7 @@ export default function HookRemix({ originalHook, originalTopic = 'Custom Hook' 
       console.error('Remix generation error:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to generate remixes'
       
-      // Play error sound
-      playSound('error.mp3')
+      // Note: No error sound file available, so we'll skip this
       
       toast.error(`❌ ${errorMessage}`, {
         position: "top-right",
@@ -115,7 +114,7 @@ export default function HookRemix({ originalHook, originalTopic = 'Custom Hook' 
   const copyToClipboard = async (text: string, tone: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      playSound('copy.mp3')
+      playSound('copy-blip.mp3')
       toast.success(`✅ ${toneLabels[tone as keyof typeof toneLabels]} remix copied!`, {
         position: "top-right",
         autoClose: 2000,
@@ -125,7 +124,7 @@ export default function HookRemix({ originalHook, originalTopic = 'Custom Hook' 
         draggable: true,
       })
     } catch (err) {
-      playSound('error.mp3')
+      // Note: No error sound file available, so we'll skip this
       toast.error('❌ Failed to copy to clipboard', {
         position: "top-right",
         autoClose: 3000,
@@ -179,7 +178,7 @@ export default function HookRemix({ originalHook, originalTopic = 'Custom Hook' 
       setSavedRemixes(prev => new Set([...Array.from(prev), remixText]))
 
       // Play save sound
-      playSound('save.mp3')
+      playSound('toggle-click.mp3') // Updated to faster sound
 
       toast.success(`✅ ${toneLabels[tone as keyof typeof toneLabels]} remix saved to your collection!`, {
         position: "top-right",
@@ -192,8 +191,7 @@ export default function HookRemix({ originalHook, originalTopic = 'Custom Hook' 
     } catch (error) {
       console.error('Failed to save remix:', error)
       
-      // Play error sound
-      playSound('error.mp3')
+      // Note: No error sound file available, so we'll skip this
       
       toast.error('❌ Failed to save remix to collection', {
         position: "top-right",

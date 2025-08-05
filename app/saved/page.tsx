@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { toast } from 'react-toastify'
 import styles from './Saved.module.css'
 import { SavedContent } from '../types'
+import { playSound } from '../utils/soundEffects'
 
 interface EditFormData {
   topic: string
@@ -81,6 +82,7 @@ export default function SavedPage() {
   const copyToClipboard = async (text: string, type: string) => {
     try {
       await navigator.clipboard.writeText(text)
+      playSound('copy-blip.mp3')
       toast.success(`✅ ${type} copied to clipboard!`, {
         position: "top-right",
         autoClose: 2000,
@@ -105,6 +107,10 @@ export default function SavedPage() {
     const updated = savedContent.filter(item => item.id !== id)
     setSavedContent(updated)
     localStorage.setItem('hooksy-saved-content', JSON.stringify(updated))
+    
+    // Play delete sound
+    playSound('delete-soft.mp3')
+    
     toast.success('🗑️ Content deleted from saved collection', {
       position: "top-right",
       autoClose: 2000,

@@ -24,7 +24,7 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
   const copyToClipboard = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text)
-      playSound('copy.mp3')
+      playSound('copy-blip.mp3')
       toast.success(`✅ ${label} copied to clipboard!`, {
         position: "top-right",
         autoClose: 2000,
@@ -34,7 +34,7 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         draggable: true,
       })
     } catch (err) {
-      playSound('error.mp3')
+      // Note: No error sound file available, so we'll skip this
       toast.error('❌ Failed to copy to clipboard', {
         position: "top-right",
         autoClose: 3000,
@@ -67,7 +67,7 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
       localStorage.setItem('hooksy-saved-content', JSON.stringify(saved))
 
       // Play save sound
-      playSound('save.mp3')
+      playSound('toggle-click.mp3') // Updated to faster sound
 
       toast.success('💾 Hook saved to collection!', {
         position: "top-right",
@@ -78,8 +78,7 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         draggable: true,
       })
     } catch (err) {
-      // Play error sound
-      playSound('error.mp3')
+      // Note: No error sound file available, so we'll skip this
       toast.error('❌ Failed to save content', {
         position: "top-right",
         autoClose: 3000,

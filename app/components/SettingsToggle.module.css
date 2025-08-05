@@ -1,0 +1,281 @@
+.settingsContainer {
+  position: relative;
+  z-index: 1000;
+}
+
+.settingsButton {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.settingsButton:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 20px rgba(162, 89, 255, 0.2);
+  border-color: var(--color-primary);
+}
+
+.settingsMenu {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 0.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 1rem;
+  padding: 1.5rem;
+  min-width: 320px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(20px);
+  animation: slideInDown 0.3s ease-out;
+  z-index: 1001;
+}
+
+@keyframes slideInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.settingsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.settingsHeader h3 {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-bold);
+  font-size: 1.25rem;
+  color: var(--color-text);
+  margin: 0;
+}
+
+.closeButton {
+  background: transparent;
+  border: none;
+  color: var(--color-text-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+  transition: all 0.2s ease;
+}
+
+.closeButton:hover {
+  color: var(--color-text);
+  background: rgba(162, 89, 255, 0.1);
+}
+
+.settingsOptions {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.settingItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: 0.75rem;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  transition: all 0.3s ease;
+}
+
+.settingItem:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(162, 89, 255, 0.1);
+}
+
+.settingInfo {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex: 1;
+}
+
+.settingIcon {
+  font-size: 1.5rem;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(162, 89, 255, 0.1);
+  border-radius: 0.5rem;
+}
+
+.settingText {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.settingLabel {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-semibold);
+  font-size: 1rem;
+  color: var(--color-text);
+}
+
+.settingDescription {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-normal);
+  font-size: 0.875rem;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.toggleButton {
+  position: relative;
+  width: 48px;
+  height: 24px;
+  background: var(--color-border);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 2px;
+}
+
+.toggleButton.enabled {
+  background: var(--color-primary);
+}
+
+.toggleButton.disabled {
+  background: var(--color-border);
+}
+
+.toggleSlider {
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.toggleButton.enabled .toggleSlider {
+  transform: translateX(24px);
+}
+
+.toggleButton.disabled .toggleSlider {
+  transform: translateX(0);
+}
+
+.toggleButton:hover {
+  transform: scale(1.05);
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+  .settingsMenu {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    margin-top: 0;
+    width: 90%;
+    max-width: 400px;
+    max-height: 80vh;
+    overflow-y: auto;
+  }
+  
+  .settingsButton {
+    width: 44px;
+    height: 44px;
+    font-size: 1.3rem;
+  }
+  
+  .settingItem {
+    padding: 0.875rem;
+  }
+  
+  .settingIcon {
+    width: 36px;
+    height: 36px;
+    font-size: 1.3rem;
+  }
+  
+  .settingLabel {
+    font-size: 0.95rem;
+  }
+  
+  .settingDescription {
+    font-size: 0.8rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .settingsMenu {
+    width: 95%;
+    padding: 1.25rem;
+  }
+  
+  .settingsHeader h3 {
+    font-size: 1.1rem;
+  }
+  
+  .settingItem {
+    padding: 0.75rem;
+  }
+  
+  .settingIcon {
+    width: 32px;
+    height: 32px;
+    font-size: 1.2rem;
+  }
+  
+  .toggleButton {
+    width: 44px;
+    height: 22px;
+  }
+  
+  .toggleSlider {
+    width: 18px;
+    height: 18px;
+  }
+  
+  .toggleButton.enabled .toggleSlider {
+    transform: translateX(22px);
+  }
+}
+
+/* Dark mode support */
+@media (prefers-color-scheme: dark) {
+  .settingsMenu {
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .settingsMenu,
+  .settingsButton,
+  .settingItem,
+  .toggleButton,
+  .toggleSlider {
+    animation: none;
+    transition: none;
+  }
+} 

@@ -22,7 +22,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const { topic, tone, isRemix = false } = await request.json()
+    const { topic, tone, isRemix = false, platform } = await request.json()
 
     if (!topic || !tone) {
       return NextResponse.json(
@@ -43,15 +43,48 @@ export async function POST(request: NextRequest) {
       return toneMap[tone] || toneMap.professional
     }
 
+    const getPlatformInstructions = (platform: string) => {
+      const platformMap: { [key: string]: string } = {
+        instagram: "Instagram: Create short, punchy, curiosity-driven hooks under 150 characters. Use casual, conversational tone with emojis. Focus on visual appeal and storytelling.",
+        youtube: "YouTube: Create high-suspense, first-second grabber hooks. Use emotional language and create urgency. Focus on curiosity gaps and 'what happens next' moments.",
+        twitter: "Twitter: Create concise, witty, shareable hooks under 280 characters. Use clever wordplay and trending language. Focus on virality and engagement.",
+        email: "Email: Create emotional, open-loop structure hooks. Use conversational, personal tone. Focus on storytelling and relationship building."
+      }
+      return platformMap[platform] || ""
+    }
+
     const toneInstructions = getToneInstructions(tone)
+    const platformInstructions = platform ? getPlatformInstructions(platform) : ""
     
     const remixInstruction = isRemix 
       ? "\n\nIMPORTANT: This is a remix request. Create a completely different variation of the hook, title, hashtags, and CTA while maintaining the same topic and tone. Make it fresh and unique from the original."
       : ""
     
-    const prompt = `Generate viral content for the topic: "${topic}" with a ${tone} tone.
+    const platformSpecificPrompt = platform 
+      ? `\n\nPlatform Guidelines: ${platformInstructions}\n\nGenerate content specifically optimized for ${platform.toUpperCase()} platform.`
+      : ""
+    
+    const prompt = `Generate viral content for the topic: "${topic}" with a ${tone} tone.${platformSpecificPrompt}
 
 Tone Instructions: ${toneInstructions}${remixInstruction}
+
+IMPORTANT: Avoid these weak, overused phrases:
+- "Unleash your potential"
+- "The ultimate path"
+- "Unlock the secrets"
+- "Discover the hidden"
+- "Master the art of"
+- "Transform your life"
+- "Revolutionary breakthrough"
+- "Game-changing strategy"
+
+Instead, use:
+- Specific, concrete language
+- Emotional triggers
+- Curiosity gaps
+- Personal stories or scenarios
+- Numbers and specific results
+- Action-oriented language
 
 Please provide:
 1. 1 viral hook that grabs attention immediately (make it bold and compelling)
@@ -115,7 +148,13 @@ Make sure the hook is attention-grabbing and makes people want to read more. The
       throw new Error('Invalid response structure from OpenAI')
     }
 
-    return NextResponse.json(parsedResponse)
+    // Add platform information to the response
+    const responseWithPlatform = {
+      ...parsedResponse,
+      platform: platform || 'general'
+    }
+
+    return NextResponse.json(responseWithPlatform)
 
   } catch (error) {
     console.error('Error generating content:', error)

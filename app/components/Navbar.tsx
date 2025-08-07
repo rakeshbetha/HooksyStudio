@@ -57,7 +57,13 @@ export default function Navbar() {
             href="/" 
             className={`${styles.navLink} ${isActive('/') ? styles.active : ''}`}
           >
-            Home
+            Generate
+          </Link>
+          <Link 
+            href="/analyze" 
+            className={`${styles.navLink} ${isActive('/analyze') ? styles.active : ''}`}
+          >
+            Analyze
           </Link>
           <Link 
             href="/saved" 
@@ -81,7 +87,7 @@ export default function Navbar() {
 
         {/* Right Side Controls */}
         <div className={styles.controls}>
-          <SettingsToggle />
+          <SettingsToggle /> {/* Updated: Replaced SoundToggle with SettingsToggle */}
           
           {/* Mobile Menu Button */}
           <button
@@ -111,7 +117,14 @@ export default function Navbar() {
               className={`${styles.mobileNavLink} ${isActive('/') ? styles.active : ''}`}
               onClick={closeMenu}
             >
-              Home
+              Generate
+            </Link>
+            <Link 
+              href="/analyze" 
+              className={`${styles.mobileNavLink} ${isActive('/analyze') ? styles.active : ''}`}
+              onClick={closeMenu}
+            >
+              Analyze
             </Link>
             <Link 
               href="/saved" 

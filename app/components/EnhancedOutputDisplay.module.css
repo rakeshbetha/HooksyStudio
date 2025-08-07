@@ -32,6 +32,105 @@
   line-height: var(--line-height-tight);
 }
 
+.platformInfo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+  padding: 0.75rem 1rem;
+  background: rgba(162, 89, 255, 0.1);
+  border: 1px solid rgba(162, 89, 255, 0.3);
+  border-radius: 0.75rem;
+  backdrop-filter: blur(10px);
+  animation: fadeInUp 0.6s ease-out;
+}
+
+.platformIcon {
+  font-size: 1.25rem;
+}
+
+.platformName {
+  font-family: var(--font-heading);
+  font-weight: var(--font-weight-semibold);
+  font-size: 1rem;
+  color: var(--color-text);
+  line-height: var(--line-height-tight);
+}
+
+.platformOptimized {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.8rem;
+  color: var(--color-primary);
+  background: rgba(162, 89, 255, 0.2);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  line-height: var(--line-height-tight);
+}
+
+.characterCount {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 0.5rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.charCount {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.85rem;
+  line-height: var(--line-height-tight);
+}
+
+.charCount.good {
+  color: #10b981;
+}
+
+.charCount.warning {
+  color: #f59e0b;
+}
+
+.charCount.error {
+  color: #ef4444;
+}
+
+.platformTag {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.8rem;
+  color: var(--color-text-muted);
+  background: rgba(255, 255, 255, 0.1);
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  line-height: var(--line-height-tight);
+}
+
+.qualityBadge {
+  font-family: var(--font-body);
+  font-weight: var(--font-weight-medium);
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 0.5rem;
+  margin-left: 0.5rem;
+  line-height: var(--line-height-tight);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+.qualityBadge.excellent {
+  background: rgba(16, 185, 129, 0.2);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.qualityBadge.good {
+  background: rgba(245, 158, 11, 0.2);
+  color: #f59e0b;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
 .section {
   margin-bottom: 2rem;
   animation: fadeIn 0.6s ease-out;
@@ -256,7 +355,8 @@
 }
 
 .saveButton,
-.previewButton {
+.previewButton,
+.analyzeButton {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-hover) 100%);
   color: var(--color-text);
   border: none;
@@ -279,7 +379,8 @@
 }
 
 .saveButton::before,
-.previewButton::before {
+.previewButton::before,
+.analyzeButton::before {
   content: '';
   position: absolute;
   top: 0;
@@ -291,12 +392,14 @@
 }
 
 .saveButton:hover::before,
-.previewButton:hover::before {
+.previewButton:hover::before,
+.analyzeButton:hover::before {
   left: 100%;
 }
 
 .saveButton:hover,
-.previewButton:hover {
+.previewButton:hover,
+.analyzeButton:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(162, 89, 255, 0.4);
 }
@@ -508,7 +611,8 @@
   }
   
   .saveButton,
-  .previewButton {
+  .previewButton,
+  .analyzeButton {
     font-size: 0.9rem;
     padding: 0.75rem 1.25rem;
     min-width: 150px;
@@ -525,7 +629,8 @@
   }
   
   .saveButton,
-  .previewButton {
+  .previewButton,
+  .analyzeButton {
     width: 100%;
     max-width: 300px;
   }
@@ -549,7 +654,8 @@
   }
   
   .saveButton,
-  .previewButton {
+  .previewButton,
+  .analyzeButton {
     font-size: 0.85rem;
     padding: 0.7rem 1rem;
     min-width: 120px;

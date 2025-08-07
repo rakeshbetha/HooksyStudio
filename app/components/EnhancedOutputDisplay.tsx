@@ -21,6 +21,52 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
   const brandName = 'YourBrand'
   const brandInitials = 'Y'
 
+  const getPlatformInfo = () => {
+    if (!content.platform || content.platform === 'general') return null
+    
+    const platformMap: { [key: string]: { icon: string, name: string, color: string, charLimit: number } } = {
+      instagram: { icon: '📸', name: 'Instagram', color: '#E4405F', charLimit: 150 },
+      youtube: { icon: '📺', name: 'YouTube', color: '#FF0000', charLimit: 100 },
+      twitter: { icon: '🐦', name: 'Twitter', color: '#1DA1F2', charLimit: 280 },
+      email: { icon: '📧', name: 'Email', color: '#EA4335', charLimit: 200 }
+    }
+    
+    return platformMap[content.platform]
+  }
+
+  const platformInfo = getPlatformInfo()
+
+  const getCharacterCount = (text: string) => {
+    return text.length
+  }
+
+  const getCharacterStatus = (text: string, limit: number) => {
+    const count = text.length
+    const percentage = (count / limit) * 100
+    
+    if (percentage >= 90) return 'warning'
+    if (percentage >= 100) return 'error'
+    return 'good'
+  }
+
+  const getHookQualityBadge = () => {
+    // This would be calculated from the actual analysis
+    // For now, we'll show it based on a simple heuristic
+    const hookText = content.hooks[0].toLowerCase()
+    const hasSpecificLanguage = hookText.includes('cricket') || hookText.includes('bat') || hookText.includes('ball')
+    const hasEmotionalTriggers = hookText.includes('dream') || hookText.includes('passion') || hookText.includes('success')
+    const hasNumbers = /\d+/.test(hookText)
+    
+    if (hasSpecificLanguage && hasEmotionalTriggers && hasNumbers) {
+      return { show: true, type: 'excellent' as const, text: '🔥 Viral Potential' }
+    } else if (hasSpecificLanguage || hasEmotionalTriggers) {
+      return { show: true, type: 'good' as const, text: '⚡ Strong Hook' }
+    }
+    return { show: false, type: undefined, text: '' }
+  }
+
+  const qualityBadge = getHookQualityBadge()
+
   const copyToClipboard = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text)
@@ -58,7 +104,10 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         hashtags: content.hashtags,
         cta: content.ctas[0],
         timestamp: Date.now(),
-        hookScore: 'Medium' // Placeholder for now
+        hookScore: 'Medium', // Placeholder for now
+        customTags: [tone], // Add the tone as a custom tag
+        isPinned: false,
+        notes: ''
       }
 
       const existing = localStorage.getItem('hooksy-saved-content')
@@ -100,6 +149,15 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
           Generated Content
         </h3>
         
+        {/* Platform Info */}
+        {platformInfo && (
+          <div className={styles.platformInfo}>
+            <span className={styles.platformIcon}>{platformInfo.icon}</span>
+            <span className={styles.platformName}>{platformInfo.name}</span>
+            <span className={styles.platformOptimized}>Optimized</span>
+          </div>
+        )}
+        
         {/* Hook Section */}
         <div className={styles.contentCard}>
           <div className={styles.cardHeader}>
@@ -108,6 +166,11 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
               <span className={`${styles.scoreBadge} ${styles[hookScoreResult.score.toLowerCase()]}`}>
                 {hookScoreResult.emoji} {hookScoreResult.score}
               </span>
+              {qualityBadge.show && qualityBadge.type && (
+                <span className={`${styles.qualityBadge} ${styles[qualityBadge.type]}`}>
+                  {qualityBadge.text}
+                </span>
+              )}
             </h4>
             <button
               onClick={() => copyToClipboard(content.hooks[0], 'Hook')}
@@ -118,6 +181,16 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
             </button>
           </div>
           <p className={styles.contentText}>{content.hooks[0]}</p>
+          {platformInfo && (
+            <div className={styles.characterCount}>
+              <span className={`${styles.charCount} ${styles[getCharacterStatus(content.hooks[0], platformInfo.charLimit)]}`}>
+                {getCharacterCount(content.hooks[0])}/{platformInfo.charLimit} characters
+              </span>
+              <span className={styles.platformTag}>
+                {platformInfo.icon} {platformInfo.name}
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Title Section */}
@@ -178,6 +251,17 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
             className={styles.saveButton}
           >
             💾 Save to Collection
+          </button>
+          
+          <button
+            onClick={() => {
+              // Navigate to analyze page with the hook pre-filled
+              const analyzeUrl = `/analyze?hook=${encodeURIComponent(content.hooks[0])}`
+              window.open(analyzeUrl, '_blank')
+            }}
+            className={styles.analyzeButton}
+          >
+            🔍 Quick Analyze
           </button>
           
           <button

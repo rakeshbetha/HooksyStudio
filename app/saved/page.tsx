@@ -60,7 +60,7 @@ export default function SavedPage() {
               cta: item.cta,
               timestamp: item.timestamp,
               isPinned: item.isPinned || false,
-              customTags: item.customTags || [],
+              customTags: item.customTags || [item.tone], // Add tone as tag if no customTags
               notes: item.notes || ''
             }
           }
@@ -68,7 +68,7 @@ export default function SavedPage() {
           return {
             ...item,
             isPinned: item.isPinned || false,
-            customTags: item.customTags || [],
+            customTags: item.customTags || [item.tone], // Add tone as tag if no customTags
             notes: item.notes || ''
           }
         })
@@ -342,6 +342,33 @@ export default function SavedPage() {
     })
   }
 
+  const refreshSavedContent = () => {
+    const saved = localStorage.getItem('hooksy-saved-content')
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved)
+        const updatedContent = parsed.map((item: any) => ({
+          ...item,
+          customTags: item.customTags || [item.tone], // Ensure all items have customTags
+          isPinned: item.isPinned || false,
+          notes: item.notes || ''
+        }))
+        localStorage.setItem('hooksy-saved-content', JSON.stringify(updatedContent))
+        setSavedContent(updatedContent)
+        toast.success('🔄 Saved content refreshed with tags!', {
+          position: "top-right",
+          autoClose: 2000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+        })
+      } catch (error) {
+        console.error('Error refreshing saved content:', error)
+      }
+    }
+  }
+
   const getToneIcon = (tone: string) => {
     const toneIcons: { [key: string]: string } = {
       professional: '💼',
@@ -370,8 +397,11 @@ export default function SavedPage() {
   const getAllTags = () => {
     const allTags = new Set<string>()
     savedContent.forEach(item => {
-      item.customTags?.forEach(tag => allTags.add(tag))
+      if (item.customTags && item.customTags.length > 0) {
+        item.customTags.forEach(tag => allTags.add(tag))
+      }
     })
+    console.log('Available tags:', Array.from(allTags))
     return Array.from(allTags).sort()
   }
 
@@ -508,6 +538,9 @@ export default function SavedPage() {
 
       {/* Export Controls */}
       <div className={styles.exportControls}>
+        <button onClick={refreshSavedContent} className={styles.exportButton}>
+          🔄 Refresh Tags
+        </button>
         <button onClick={exportToPDF} className={styles.exportButton}>
           📄 PDF
         </button>

@@ -6,8 +6,8 @@ import styles from './Hero.module.css'
 import { playSound } from '../utils/soundEffects'
 
 interface HeroProps {
-  onGenerate: (topic: string, tone: string) => Promise<void>
-  onRemix: (topic: string, tone: string) => Promise<void>
+  onGenerate: (topic: string, tone: string, platform?: string) => Promise<void>
+  onRemix: (topic: string, tone: string, platform?: string) => Promise<void>
   isLoading: boolean
   canRemix: boolean
 }
@@ -19,6 +19,14 @@ const toneOptions = [
   { value: 'shocking', label: 'Shocking', emoji: '😱' },
   { value: 'educational', label: 'Educational', emoji: '🎓' },
   { value: 'motivational', label: 'Motivational', emoji: '🔥' }
+]
+
+const platformOptions = [
+  { value: '', label: 'All Platforms', emoji: '🌐' },
+  { value: 'instagram', label: 'Instagram', emoji: '📸' },
+  { value: 'youtube', label: 'YouTube', emoji: '📺' },
+  { value: 'twitter', label: 'Twitter', emoji: '🐦' },
+  { value: 'email', label: 'Email', emoji: '📧' }
 ]
 
 const dailyHooks = [
@@ -35,6 +43,7 @@ const dailyHooks = [
 export default function Hero({ onGenerate, onRemix, isLoading, canRemix }: HeroProps) {
   const [topic, setTopic] = useState('')
   const [tone, setTone] = useState('professional')
+  const [platform, setPlatform] = useState('')
   const [currentHook, setCurrentHook] = useState('')
   const [isCopied, setIsCopied] = useState(false)
 
@@ -83,7 +92,7 @@ export default function Hero({ onGenerate, onRemix, isLoading, canRemix }: HeroP
     e.preventDefault()
     if (topic.trim()) {
       playSound('generate.mp3')
-      await onGenerate(topic.trim(), tone)
+      await onGenerate(topic.trim(), tone, platform)
       // Smooth scroll to output section after generation
       setTimeout(() => {
         const outputSection = document.querySelector('[data-output-section]')
@@ -100,7 +109,7 @@ export default function Hero({ onGenerate, onRemix, isLoading, canRemix }: HeroP
   const handleRemix = async () => {
     if (topic.trim() && onRemix) {
       playSound('remix.mp3')
-      await onRemix(topic.trim(), tone)
+      await onRemix(topic.trim(), tone, platform)
       // Smooth scroll to output section after remix
       setTimeout(() => {
         const outputSection = document.querySelector('[data-output-section]')
@@ -179,6 +188,29 @@ export default function Hero({ onGenerate, onRemix, isLoading, canRemix }: HeroP
                 className={styles.select}
               >
                 {toneOptions.map(option => (
+                  <option key={option.value} value={option.value}>
+                    {option.emoji} {option.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className={styles.inputGroup}>
+              <label htmlFor="platform" className={styles.label}>
+                Select Platform 📱
+                {platform && platform !== '' && (
+                  <span className={styles.platformIndicator}>
+                    {platformOptions.find(p => p.value === platform)?.emoji} {platformOptions.find(p => p.value === platform)?.label}
+                  </span>
+                )}
+              </label>
+              <select
+                id="platform"
+                value={platform}
+                onChange={(e) => setPlatform(e.target.value)}
+                className={styles.select}
+              >
+                {platformOptions.map(option => (
                   <option key={option.value} value={option.value}>
                     {option.emoji} {option.label}
                   </option>

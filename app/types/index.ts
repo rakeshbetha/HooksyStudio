@@ -3,6 +3,7 @@ export interface GeneratedContent {
   titles: string[]
   hashtags: string[]
   ctas: string[]
+  platform?: string
 }
 
 export interface SavedContent {

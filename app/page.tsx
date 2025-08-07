@@ -21,7 +21,7 @@ export default function Home() {
   const [currentTopic, setCurrentTopic] = useState('')
   const [currentTone, setCurrentTone] = useState('')
 
-  const handleGenerate = async (topic: string, tone: string) => {
+  const handleGenerate = async (topic: string, tone: string, platform?: string) => {
     setIsLoading(true)
     setError(null)
     setCurrentTopic(topic)
@@ -36,7 +36,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ topic, tone }),
+        body: JSON.stringify({ topic, tone, platform }),
         signal: controller.signal,
       })
 
@@ -79,7 +79,7 @@ export default function Home() {
     }
   }
 
-  const handleRemix = async (topic: string, tone: string) => {
+  const handleRemix = async (topic: string, tone: string, platform?: string) => {
     setIsRemixing(true)
     setError(null)
 
@@ -92,7 +92,7 @@ export default function Home() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ topic, tone, isRemix: true }),
+        body: JSON.stringify({ topic, tone, isRemix: true, platform }),
         signal: controller.signal,
       })
 

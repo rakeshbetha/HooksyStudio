@@ -13,6 +13,7 @@ interface AnalysisScores {
   virality: number
   clarity: number
   emotion: number
+  originality: number
 }
 
 interface AnalysisResult {
@@ -179,6 +180,12 @@ export default function AnalyzePage() {
                     <div className={styles.scoreIcon}>{getScoreIcon(analysis.scores.emotion)}</div>
                     <div className={styles.scoreLabel}>Emotion</div>
                     <div className={styles.scoreValue}>{analysis.scores.emotion}/10</div>
+                  </div>
+                  
+                  <div className={`${styles.scoreCard} ${getScoreColor(analysis.scores.originality)}`}>
+                    <div className={styles.scoreIcon}>{getScoreIcon(analysis.scores.originality)}</div>
+                    <div className={styles.scoreLabel}>Originality</div>
+                    <div className={styles.scoreValue}>{analysis.scores.originality}/10</div>
                   </div>
                 </div>
               </div>

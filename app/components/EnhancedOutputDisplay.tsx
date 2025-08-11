@@ -1,12 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { motion } from 'framer-motion'
 import { toast } from 'react-toastify'
 import styles from './EnhancedOutputDisplay.module.css'
-import { GeneratedContent, SavedContent } from '../types'
-import { calculateHookScore } from '../utils/hookScore'
-import HookRemix from './HookRemix'
 import { playSound } from '../utils/soundEffects'
+import { calculateHookScore } from '../utils/hookScore'
+import { useAuth } from '../contexts/AuthContext'
+import { getCollections, createCollection, saveHook } from '../../lib/supabase-operations'
+import { GeneratedContent } from '../types'
+import HookRemix from './HookRemix'
 
 interface EnhancedOutputDisplayProps {
   content: GeneratedContent
@@ -14,12 +17,62 @@ interface EnhancedOutputDisplayProps {
   tone: string
 }
 
+interface Collection {
+  id: string
+  title: string
+  created_at: string
+}
+
 export default function EnhancedOutputDisplay({ content, topic, tone }: EnhancedOutputDisplayProps) {
+  const { user } = useAuth()
   const [showSocialPreview, setShowSocialPreview] = useState(false)
+  const [collections, setCollections] = useState<Collection[]>([])
+  const [selectedCollection, setSelectedCollection] = useState<string>('')
+  const [showCollectionModal, setShowCollectionModal] = useState(false)
+  const [newCollectionTitle, setNewCollectionTitle] = useState('')
+  const [isCreatingCollection, setIsCreatingCollection] = useState(false)
   
   // Default brand settings - can be customized in the future
   const brandName = 'YourBrand'
   const brandInitials = 'Y'
+
+  useEffect(() => {
+    if (user) {
+      loadCollections()
+    }
+  }, [user])
+
+  const loadCollections = async () => {
+    try {
+      const data = await getCollections()
+      setCollections(data || [])
+      if (data && data.length > 0) {
+        setSelectedCollection(data[0].id)
+      }
+    } catch (error) {
+      console.error('Error loading collections:', error)
+    }
+  }
+
+  const createNewCollection = async () => {
+    if (!newCollectionTitle.trim()) return
+    
+    try {
+      setIsCreatingCollection(true)
+      const newCollection = await createCollection(newCollectionTitle.trim())
+      setCollections(prev => [newCollection, ...prev])
+      setSelectedCollection(newCollection.id)
+      setNewCollectionTitle('')
+      setShowCollectionModal(false)
+      toast.success('Collection created successfully!')
+      playSound('save-confirm.mp3')
+    } catch (error) {
+      console.error('Error creating collection:', error)
+      toast.error('Failed to create collection')
+    } finally {
+      setIsCreatingCollection(false)
+    }
+  }
 
   const getPlatformInfo = () => {
     if (!content.platform || content.platform === 'general') return null
@@ -67,6 +120,41 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
 
   const qualityBadge = getHookQualityBadge()
 
+  const saveToCollection = async () => {
+    if (!user) {
+      toast.error('Please log in to save hooks')
+      return
+    }
+
+    if (!selectedCollection) {
+      setShowCollectionModal(true)
+      return
+    }
+
+    try {
+      await saveHook(selectedCollection, content.hooks[0], 'social-media', {
+        topic,
+        tone,
+        title: content.titles[0],
+        hashtags: content.hashtags,
+        cta: content.ctas[0]
+      })
+      
+      toast.success('💾 Hook saved to collection!', {
+        position: "top-right",
+        autoClose: 3000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
+      playSound('save-confirm.mp3')
+    } catch (error) {
+      console.error('Error saving hook:', error)
+      toast.error('Failed to save hook')
+    }
+  }
+
   const copyToClipboard = async (text: string, label: string) => {
     try {
       await navigator.clipboard.writeText(text)
@@ -80,7 +168,6 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         draggable: true,
       })
     } catch (err) {
-      // Note: No error sound file available, so we'll skip this
       toast.error('❌ Failed to copy to clipboard', {
         position: "top-right",
         autoClose: 3000,
@@ -90,53 +177,6 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         draggable: true,
       })
       console.error('Failed to copy text: ', err)
-    }
-  }
-
-  const saveToCollection = () => {
-    try {
-      const savedContent: SavedContent = {
-        id: Date.now().toString(),
-        topic,
-        tone,
-        hook: content.hooks[0],
-        title: content.titles[0],
-        hashtags: content.hashtags,
-        cta: content.ctas[0],
-        timestamp: Date.now(),
-        hookScore: 'Medium', // Placeholder for now
-        customTags: [tone], // Add the tone as a custom tag
-        isPinned: false,
-        notes: ''
-      }
-
-      const existing = localStorage.getItem('hooksy-saved-content')
-      const saved = existing ? JSON.parse(existing) : []
-      saved.push(savedContent)
-      localStorage.setItem('hooksy-saved-content', JSON.stringify(saved))
-
-      // Play save sound
-      playSound('toggle-click.mp3') // Updated to faster sound
-
-      toast.success('💾 Hook saved to collection!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      })
-    } catch (err) {
-      // Note: No error sound file available, so we'll skip this
-      toast.error('❌ Failed to save content', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      })
-      console.error('Failed to save content: ', err)
     }
   }
 
@@ -306,6 +346,60 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
 
       {/* Hook Remix Section */}
       <HookRemix originalHook={content.hooks[0]} originalTopic={topic} />
+
+      {/* Collection Selection Modal */}
+      {showCollectionModal && (
+        <div className={styles.modalOverlay}>
+          <div className={styles.modal}>
+            <h3>Save to Collection</h3>
+            <p>Choose a collection or create a new one:</p>
+            
+            {collections.length > 0 && (
+              <div className={styles.collectionSelect}>
+                <label htmlFor="collection-select">Select Collection:</label>
+                <select
+                  id="collection-select"
+                  value={selectedCollection}
+                  onChange={(e) => setSelectedCollection(e.target.value)}
+                >
+                  {collections.map(collection => (
+                    <option key={collection.id} value={collection.id}>
+                      {collection.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            
+            <div className={styles.createNew}>
+              <label htmlFor="new-collection">Or create new collection:</label>
+              <input
+                id="new-collection"
+                type="text"
+                placeholder="Collection name"
+                value={newCollectionTitle}
+                onChange={(e) => setNewCollectionTitle(e.target.value)}
+              />
+            </div>
+            
+            <div className={styles.modalActions}>
+              <button
+                onClick={() => setShowCollectionModal(false)}
+                className={styles.cancelButton}
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createNewCollection}
+                disabled={isCreatingCollection || !newCollectionTitle.trim()}
+                className={styles.saveButton}
+              >
+                {isCreatingCollection ? 'Creating...' : 'Create & Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

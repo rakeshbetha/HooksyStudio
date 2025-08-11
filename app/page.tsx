@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { toast, ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 import styles from './page.module.css'
@@ -14,8 +15,10 @@ import { playSound } from './utils/soundEffects'
 import HookOfTheDay from './components/HookOfTheDay'
 
 export default function Home() {
-  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null)
   const [isLoading, setIsLoading] = useState(false)
+  const [canRemix, setCanRemix] = useState(false)
+  const [generatedContent, setGeneratedContent] = useState<GeneratedContent | null>(null)
+  const [isRetraining, setIsRetraining] = useState(false)
   const [isRemixing, setIsRemixing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [currentTopic, setCurrentTopic] = useState('')
@@ -82,56 +85,77 @@ export default function Home() {
   const handleRemix = async (topic: string, tone: string, platform?: string) => {
     setIsRemixing(true)
     setError(null)
+    playSound('generate-pop.mp3')
 
     try {
-      const controller = new AbortController()
-      const timeoutId = setTimeout(() => controller.abort(), 30000)
-
       const response = await fetch('/api/generate', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ topic, tone, isRemix: true, platform }),
-        signal: controller.signal,
+        body: JSON.stringify({
+          topic,
+          tone,
+          isRemix: true,
+          platform
+        }),
       })
-
-      clearTimeout(timeoutId)
 
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to remix content')
+        throw new Error('Failed to remix content')
       }
 
-      const data = await response.json()
-      setGeneratedContent(data)
-      
-      // Play remix success sound (using generate-pop for faster response)
-      playSound('generate-pop.mp3')
-      
-      toast.success('🔄 Content remixed successfully!', {
-        position: "top-right",
-        autoClose: 3000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      })
-    } catch (error) {
-      console.error('Error remixing content:', error)
-      const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred'
-      setError(errorMessage)
-      
-      toast.error(`❌ ${errorMessage}`, {
-        position: "top-right",
-        autoClose: 5000,
-        hideProgressBar: false,
-        closeOnClick: true,
-        pauseOnHover: true,
-        draggable: true,
-      })
+      const result = await response.json()
+      setGeneratedContent(result)
+      setCanRemix(true)
+    } catch (err) {
+      setError('Failed to remix content. Please try again.')
+      console.error('Remix error:', err)
     } finally {
       setIsRemixing(false)
+    }
+  }
+
+  const handleRetrain = async (topic: string, tone: string, platform?: string) => {
+    setIsRetraining(true)
+    setError(null)
+    playSound('generate-pop.mp3')
+
+    try {
+      const response = await fetch('/api/retrain_hook', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          topic,
+          tone,
+          platform
+        }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to retrain hook')
+      }
+
+      const result = await response.json()
+      setGeneratedContent(result.content)
+      setCanRemix(true)
+      
+      // Show success message with attempts info
+      toast.success(`🔥 Generated viral hook after ${result.attempts} attempts! Virality: ${result.scores.virality}/10`, {
+        position: "top-right",
+        autoClose: 4000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+      })
+    } catch (err) {
+      setError('Failed to retrain hook. Please try again.')
+      console.error('Retrain error:', err)
+    } finally {
+      setIsRetraining(false)
     }
   }
 
@@ -143,8 +167,10 @@ export default function Home() {
           <Hero 
             onGenerate={handleGenerate}
             onRemix={handleRemix}
-            isLoading={isLoading || isRemixing}
-            canRemix={!!generatedContent}
+            onRetrain={handleRetrain}
+            isLoading={isLoading}
+            canRemix={canRemix}
+            isRetraining={isRetraining}
           />
         </section>
         

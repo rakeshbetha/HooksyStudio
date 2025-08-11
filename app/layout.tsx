@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next'
 import { Sora } from 'next/font/google'
 import './globals.css'
 import Navbar from './components/Navbar'
+import { AuthProvider } from './contexts/AuthContext'
 
 const sora = Sora({ 
   subsets: ['latin'],
@@ -68,10 +69,12 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.cdnfonts.com" />
       </head>
       <body className={`${sora.className} antialiased`}>
-        <Navbar />
-        <main style={{ paddingTop: '70px' }}>
-          {children}
-        </main>
+        <AuthProvider>
+          <Navbar />
+          <main style={{ paddingTop: '70px' }}>
+            {children}
+          </main>
+        </AuthProvider>
       </body>
     </html>
   )

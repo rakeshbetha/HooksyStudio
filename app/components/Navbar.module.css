@@ -186,6 +186,38 @@
   gap: 0.75rem;
 }
 
+/* Auth Controls */
+.authControls {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.userEmail {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.loginButton {
+  background: linear-gradient(135deg, #a855f7, #8b5cf6);
+  color: white;
+  padding: 8px 16px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+
+.loginButton:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(168, 85, 247, 0.3);
+}
+
 .darkModeToggle {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
@@ -348,6 +380,35 @@
 
 .mobileNavLink.active::before {
   left: 100%;
+}
+
+/* Mobile Auth Styles */
+.mobileAuthInfo {
+  padding: 1rem;
+  border-top: 1px solid var(--color-border);
+  margin-top: 1rem;
+}
+
+.mobileUserEmail {
+  font-size: 0.9rem;
+  color: var(--color-text-secondary);
+  display: block;
+  text-align: center;
+}
+
+.mobileAuthControls {
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+}
+
+.loginLink {
+  background: linear-gradient(135deg, #a855f7, #8b5cf6);
+  color: white !important;
+  border-radius: 8px;
+  padding: 12px 20px;
+  text-align: center;
+  margin-top: 1rem;
 }
 
 /* Responsive Design */

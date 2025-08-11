@@ -3,6 +3,14 @@ import OpenAI from 'openai'
 
 // Debug: Check if environment variable is loaded
 const apiKey = process.env.OPENAI_API_KEY
+console.log('ENV check (server):', {
+  hasOpenAI: Boolean(process.env.OPENAI_API_KEY),
+  hasSupabaseUrl: Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL),
+  hasSupabaseAnon: Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY),
+  nodeEnv: process.env.NODE_ENV,
+  openaiKeyLength: process.env.OPENAI_API_KEY ? process.env.OPENAI_API_KEY.length : 0
+})
+
 if (!apiKey) {
   console.error('OPENAI_API_KEY is not set in environment variables')
   console.error('Available environment variables:', Object.keys(process.env).filter(key => key.includes('OPENAI')))
@@ -17,7 +25,7 @@ export async function POST(request: NextRequest) {
     // Check if API key is available
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured. Please check your .env.local file.' },
+        { error: 'OpenAI API key not configured. Please check your environment variables.' },
         { status: 500 }
       )
     }
@@ -162,7 +170,7 @@ Make sure the hook is attention-grabbing and makes people want to read more. The
     if (error instanceof Error) {
       if (error.message.includes('API key')) {
         return NextResponse.json(
-          { error: 'OpenAI API key not configured. Please check your .env.local file.' },
+          { error: 'OpenAI API key not configured. Please check your environment variables.' },
           { status: 500 }
         )
       }

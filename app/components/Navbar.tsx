@@ -6,11 +6,14 @@ import { usePathname } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import styles from './Navbar.module.css'
 import SettingsToggle from './SettingsToggle'
+import { useAuth } from '@/app/contexts/AuthContext'
+import { LogoutButton } from './LogoutButton'
 
 export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isScrolled, setIsScrolled] = useState(false)
   const pathname = usePathname()
+  const { user, loading } = useAuth()
 
   useEffect(() => {
     const handleScroll = () => {
@@ -89,6 +92,22 @@ export default function Navbar() {
         <div className={styles.controls}>
           <SettingsToggle /> {/* Updated: Replaced SoundToggle with SettingsToggle */}
           
+          {/* Auth Controls */}
+          {!loading && (
+            <>
+              {user ? (
+                <div className={styles.authControls}>
+                  <span className={styles.userEmail}>{user.email}</span>
+                  <LogoutButton />
+                </div>
+              ) : (
+                <Link href="/login" className={styles.loginButton}>
+                  Login
+                </Link>
+              )}
+            </>
+          )}
+          
           {/* Mobile Menu Button */}
           <button
             onClick={toggleMenu}
@@ -147,6 +166,30 @@ export default function Navbar() {
             >
               Contact
             </Link>
+            
+            {/* Mobile Auth */}
+            {!loading && (
+              <>
+                {user ? (
+                  <>
+                    <div className={styles.mobileAuthInfo}>
+                      <span className={styles.mobileUserEmail}>{user.email}</span>
+                    </div>
+                    <div className={styles.mobileAuthControls}>
+                      <LogoutButton />
+                    </div>
+                  </>
+                ) : (
+                  <Link 
+                    href="/login" 
+                    className={`${styles.mobileNavLink} ${styles.loginLink}`}
+                    onClick={closeMenu}
+                  >
+                    Login
+                  </Link>
+                )}
+              </>
+            )}
           </motion.div>
         )}
       </AnimatePresence>

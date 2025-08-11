@@ -8,8 +8,10 @@ import { playSound } from '../utils/soundEffects'
 interface HeroProps {
   onGenerate: (topic: string, tone: string, platform?: string) => Promise<void>
   onRemix: (topic: string, tone: string, platform?: string) => Promise<void>
+  onRetrain: (topic: string, tone: string, platform?: string) => Promise<void>
   isLoading: boolean
   canRemix: boolean
+  isRetraining: boolean
 }
 
 const toneOptions = [
@@ -40,7 +42,7 @@ const dailyHooks = [
   "The hidden pattern in all viral posts."
 ]
 
-export default function Hero({ onGenerate, onRemix, isLoading, canRemix }: HeroProps) {
+export default function Hero({ onGenerate, onRemix, onRetrain, isLoading, canRemix, isRetraining }: HeroProps) {
   const [topic, setTopic] = useState('')
   const [tone, setTone] = useState('professional')
   const [platform, setPlatform] = useState('')
@@ -111,6 +113,23 @@ export default function Hero({ onGenerate, onRemix, isLoading, canRemix }: HeroP
       playSound('remix.mp3')
       await onRemix(topic.trim(), tone, platform)
       // Smooth scroll to output section after remix
+      setTimeout(() => {
+        const outputSection = document.querySelector('[data-output-section]')
+        if (outputSection) {
+          outputSection.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          })
+        }
+      }, 100)
+    }
+  }
+
+  const handleRetrain = async () => {
+    if (topic.trim() && onRetrain) {
+      playSound('retrain.mp3')
+      await onRetrain(topic.trim(), tone, platform)
+      // Smooth scroll to output section after retraining
       setTimeout(() => {
         const outputSection = document.querySelector('[data-output-section]')
         if (outputSection) {
@@ -224,21 +243,46 @@ export default function Hero({ onGenerate, onRemix, isLoading, canRemix }: HeroP
                 disabled={isLoading || !topic.trim()}
                 className={styles.generateButton}
               >
-                {isLoading ? 'Generating...' : 'Generate Viral Content'}
+                {isLoading ? (
+                  <div className={styles.loading}>
+                    <div className={styles.spinner}></div>
+                    Generating...
+                  </div>
+                ) : (
+                  '🚀 Generate Hooks'
+                )}
               </button>
               
-              {canRemix && (
-                <button
-                  type="button"
-                  onClick={handleRemix}
-                  disabled={isLoading || !topic.trim()}
-                  className={styles.remixButton}
-                >
-                  Remix Hook
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleRemix}
+                disabled={isLoading || !topic.trim()}
+                className={styles.remixButton}
+              >
+                Remix Hook
+              </button>
+
+              <button
+                type="button"
+                onClick={handleRetrain}
+                disabled={isRetraining || !topic.trim()}
+                className={styles.retrainButton}
+              >
+                {isRetraining ? (
+                  <div className={styles.loading}>
+                    <div className={styles.spinner}></div>
+                    Retraining...
+                  </div>
+                ) : (
+                  '🔥 Retrain Until Viral'
+                )}
+              </button>
             </div>
           </form>
+          
+          <div className={styles.retrainNote}>
+            <p>💡 <strong>Want only bangers?</strong> Tap "Retrain Until Viral" to generate hooks until they score 8+ in virality!</p>
+          </div>
         </div>
       </div>
     </div>

@@ -16,7 +16,9 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const prompt = `You're a hook analysis AI. Analyze the given hook and score it across curiosity, virality, clarity, and emotional impact. Suggest 2 stronger rewrites. Highlight any weak or overused phrases.
+    const prompt = `You're a marketing content analyzer trained to evaluate hooks based on impact and originality.
+
+Analyze the given hook and score it across curiosity, virality, clarity, emotion, and originality. Suggest 2 stronger rewrites. Highlight any weak or overused phrases.
 
 Hook to analyze: "${hook}"
 
@@ -26,7 +28,8 @@ Please provide your analysis in the following JSON format:
     "curiosity": <score 1-10>,
     "virality": <score 1-10>,
     "clarity": <score 1-10>,
-    "emotion": <score 1-10>
+    "emotion": <score 1-10>,
+    "originality": <score 1-10>
   },
   "suggestions": [
     "<first improved hook>",
@@ -43,6 +46,19 @@ Scoring guidelines:
 - Virality (1-10): How likely is it to be shared?
 - Clarity (1-10): How clear and easy to understand is it?
 - Emotion (1-10): How much emotional impact does it have?
+- Originality (1-10): How unique and fresh is the approach?
+
+Weak phrases to flag:
+- "Unleash your potential"
+- "The ultimate guide"
+- "Secrets revealed"
+- "Master the art of"
+- "Transform your life"
+- "Revolutionary breakthrough"
+- "Game-changing strategy"
+- "Discover the hidden"
+- "Unlock the secrets"
+- "The ultimate path"
 
 Only return valid JSON, no additional text.`
 

@@ -16,6 +16,8 @@ import {
   deleteHook
 } from '../../lib/supabase-operations'
 import { playSound } from '../utils/soundEffects'
+import HookGrid from '../components/HookGrid'
+import { HookItem } from '../components/HookCard'
 
 interface Collection {
   id: string
@@ -54,6 +56,18 @@ export default function SavedPage() {
     try {
       setLoading(true)
       const data = await getCollections()
+      console.log('Loaded collections data:', data)
+      console.log('Collections count:', data?.length || 0)
+      if (data && data.length > 0) {
+        data.forEach((collection, index) => {
+          console.log(`Collection ${index + 1}:`, {
+            id: collection.id,
+            title: collection.title,
+            hooksCount: collection.hooks?.length || 0,
+            hooks: collection.hooks
+          })
+        })
+      }
       setCollections(data || [])
     } catch (error) {
       console.error('Error loading collections:', error)
@@ -362,52 +376,44 @@ export default function SavedPage() {
                     </div>
                   </div>
                   
-                  <div className={styles.collectionMeta}>
-                    <span className={styles.collectionDate}>
-                      {formatDate(collection.created_at)}
-                    </span>
-                    <span className={styles.hookCount}>
-                      {collection.hooks.length} hook{collection.hooks.length !== 1 ? 's' : ''}
-                    </span>
-                  </div>
+                                     <div className={styles.collectionMeta}>
+                     <span className={styles.collectionDate}>
+                       {formatDate(collection.created_at)}
+                     </span>
+                     <span className={styles.hookCount}>
+                       {collection.hooks?.length || 0} hook{(collection.hooks?.length || 0) !== 1 ? 's' : ''}
+                     </span>
+                   </div>
 
                   {expandedCollections.has(collection.id) && (
                     <>
-                      {collection.hooks.length > 0 ? (
-                        <div className={styles.hooksList}>
-                          {collection.hooks.map((hook) => (
-                            <div key={hook.id} className={styles.hookItem}>
-                              <div className={styles.hookContent}>
-                                <p className={styles.hookText}>{hook.text}</p>
-                                {hook.platform && (
-                                  <span className={styles.hookPlatform}>{hook.platform}</span>
-                                )}
-                              </div>
-                              
-                              <div className={styles.hookActions}>
-                                <button
-                                  onClick={() => copyToClipboard(hook.text, 'Hook')}
-                                  className={styles.copyButton}
-                                  title="Copy hook"
-                                >
-                                  📋
-                                </button>
-                                <button
-                                  className={styles.editButton}
-                                  title="Edit hook"
-                                >
-                                  ✏️
-                                </button>
-                                <button
-                                  onClick={() => deleteHookHandler(hook.id)}
-                                  className={styles.deleteButton}
-                                  title="Delete hook"
-                                >
-                                  🗑️
-                                </button>
-                              </div>
-                            </div>
-                          ))}
+                      {collection.hooks && collection.hooks.length > 0 ? (
+                        <div className={styles.hooksGridContainer}>
+                          <HookGrid
+                            items={collection.hooks.map(hook => ({
+                              id: hook.id,
+                              title: hook.text,
+                              platform: hook.platform || 'social-media',
+                              createdAt: hook.created_at,
+                              pinned: false // TODO: Add pin functionality
+                            }))}
+                            onShow={(id) => {
+                              const hook = collection.hooks.find(h => h.id === id)
+                              if (hook) {
+                                copyToClipboard(hook.text, 'Hook')
+                              }
+                            }}
+                            onEdit={(id) => {
+                              // TODO: Implement edit functionality
+                              toast.info('Edit functionality coming soon!')
+                            }}
+                            onDelete={deleteHookHandler}
+                            onTogglePin={(id, pinned) => {
+                              // TODO: Implement pin functionality
+                              toast.info(`${pinned ? 'Pinned' : 'Unpinned'} hook!`)
+                            }}
+                            emptyHint="This collection has no hooks yet."
+                          />
                         </div>
                       ) : (
                         <div className={styles.emptyCollection}>

@@ -17,6 +17,8 @@ export async function createCollection(title: string) {
 
 // Get Collections + Hooks
 export async function getCollections() {
+  console.log('getCollections called')
+  
   const { data, error } = await supabaseBrowser
     .from('collections')
     .select(`
@@ -33,12 +35,23 @@ export async function getCollections() {
     `)
     .order('created_at', { ascending: false })
     
-  if (error) throw error
+  if (error) {
+    console.error('Supabase error getting collections:', error)
+    throw error
+  }
+  
+  console.log('getCollections result:', data)
   return data
 }
 
 // Save Hook
 export async function saveHook(collectionId: string, text: string, platform?: string, scores?: any) {
+  console.log('saveHook called with:', { collectionId, text, platform, scores })
+  
+  if (!collectionId || !text) {
+    throw new Error('Missing required parameters: collectionId and text are required')
+  }
+  
   const { data, error } = await supabaseBrowser
     .from('hooks')
     .insert({
@@ -50,7 +63,12 @@ export async function saveHook(collectionId: string, text: string, platform?: st
     .select()
     .single()
     
-  if (error) throw error
+  if (error) {
+    console.error('Supabase error saving hook:', error)
+    throw error
+  }
+  
+  console.log('Hook saved successfully:', data)
   return data
 }
 

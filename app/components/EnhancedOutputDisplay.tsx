@@ -132,6 +132,18 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
     }
 
     try {
+      console.log('Saving hook with data:', {
+        collectionId: selectedCollection,
+        hookText: content.hooks[0],
+        platform: 'social-media',
+        scores: { topic, tone, title: content.titles[0], hashtags: content.hashtags, cta: content.ctas[0] }
+      })
+      
+      if (!content.hooks[0] || !content.hooks[0].trim()) {
+        toast.error('No hook content to save')
+        return
+      }
+      
       await saveHook(selectedCollection, content.hooks[0], 'social-media', {
         topic,
         tone,
@@ -149,6 +161,9 @@ export default function EnhancedOutputDisplay({ content, topic, tone }: Enhanced
         draggable: true,
       })
       playSound('save-confirm.mp3')
+      
+      // Refresh collections to show the new hook
+      await loadCollections()
     } catch (error) {
       console.error('Error saving hook:', error)
       toast.error('Failed to save hook')
